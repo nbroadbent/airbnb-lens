@@ -121,6 +121,10 @@ export const patterns = {
   ratingA11y: /(\d[.,]\d{1,2}) out of 5 average rating,\s*(\d[\d.,]*) reviews?/i,
   /** "RM 2,340 for 4 nights" or "RM 1,919 for 4 nights, originally RM 2,264" — a11y price line. */
   priceForNights: /^(.+?)\s+for\s+(\d+)\s+nights?(?:,.*)?$/i,
+  /** "$926 CAD total" — regulated-total style (Canada); nights are NOT on the line. Verified 2026-10-21 (fixtures/search-cad-regulated.html). */
+  priceTotalOnly: /^(.+?)\s+total$/i,
+  /** "$150 night", "$150 per night", "$150 / night" — base nightly rate when no stay total is shown (shape from spec; UNVERIFIED in DOM). */
+  priceNightly: /^(.+?)\s*(?:per|\/|\u00b7)?\s*night$/i,
   /** Exact badge text in the card's image overlay. */
   superhost: /^superhost$/i,
   /** Unrated listings show this instead of a rating (shape from the spec; DOM form UNVERIFIED). */

@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { formatMoney, nightsFromQualifier, nightsFromUrl, parseMoney, perNight } from './price'
+import {
+  formatMoney,
+  nightsFromBreakdown,
+  nightsFromQualifier,
+  nightsFromUrl,
+  parseMoney,
+  perNight,
+} from './price'
 
 describe('parseMoney', () => {
   it('parses common formats', () => {
@@ -11,6 +18,8 @@ describe('parseMoney', () => {
     expect(parseMoney('CA$585')).toEqual({ amount: 585, currency: 'CA$' })
     expect(parseMoney('$585')).toEqual({ amount: 585, currency: '$' })
     expect(parseMoney('$2,340.07')).toEqual({ amount: 2340.07, currency: '$' })
+    expect(parseMoney('$926 CAD')).toEqual({ amount: 926, currency: '$', suffix: 'CAD' })
+    expect(parseMoney('$1,088.76 CAD')).toEqual({ amount: 1088.76, currency: '$', suffix: 'CAD' })
   })
   it('treats a lone separator with three digits as thousands', () => {
     expect(parseMoney('1.234')?.amount).toBe(1234)
@@ -45,6 +54,15 @@ describe('nights', () => {
   })
 })
 
+describe('nightsFromBreakdown', () => {
+  it('reads "N nights x …" lines only', () => {
+    expect(nightsFromBreakdown('4 nights x $201.51 CAD')).toBe(4)
+    expect(nightsFromBreakdown('1 night x $99')).toBe(1)
+    expect(nightsFromBreakdown('Taxes')).toBeUndefined()
+    expect(nightsFromBreakdown('Long stay discount')).toBeUndefined()
+  })
+})
+
 describe('perNight / formatMoney', () => {
   it('divides and rounds', () => {
     expect(perNight(2340, 4)).toBe(585)
@@ -58,5 +76,6 @@ describe('perNight / formatMoney', () => {
     expect(formatMoney(1234, 'CA$')).toBe('CA$1,234')
     expect(formatMoney(1234, '€')).toBe('€1,234')
     expect(formatMoney(585, '')).toBe('585')
+    expect(formatMoney(232, '$', 'CAD')).toBe('$232 CAD')
   })
 })

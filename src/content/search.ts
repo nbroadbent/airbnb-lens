@@ -18,9 +18,9 @@ import {
 import { el } from '../lib/dom'
 import { readEmbeddedState } from '../lib/embedded'
 import { filtersActive, passesFilters } from '../lib/filter'
-import { extractSearchResults, type ListingSummary } from '../lib/listing'
+import { extractSearchResults, filterPrice, type ListingSummary } from '../lib/listing'
 import { guarded, log } from '../lib/log'
-import { formatMoney } from '../lib/price'
+import { formatMoney, nightsFromUrl } from '../lib/price'
 import { calibrateRating } from '../lib/rating'
 import type { Filters } from '../lib/settings'
 import { q } from '../selectors'
@@ -33,6 +33,12 @@ export interface SearchAugmentResult {
   fromJson: number
   fromDom: number
   unresolved: number
+  /** Cards with no price at all (filtering by price can't touch them). */
+  noPrice: number
+  /** Cards priced only by their listed nightly rate (fees unknown; hidden only if that already exceeds the cap). */
+  listedOnly: number
+  /** Cards with no rating. */
+  noRating: number
 }
 
 const HIDE_ORIGINAL = 'data-lens-hide-original'
@@ -42,13 +48,20 @@ const HIDDEN = 'data-lens-hidden'
 
 const indexCache = new WeakMap<ParentNode, { count: number; byId: Map<string, ListingSummary> }>()
 
+/** Nights implied by the page's own URL, if dates are set. */
+export function pageNightsHint(root: ParentNode = document): number | undefined {
+  const href = (root as Document).location?.href ?? (root.ownerDocument ?? document).location.href
+  return nightsFromUrl(href)
+}
+
 export function listingIndex(root: ParentNode = document): Map<string, ListingSummary> {
   const scripts = root.querySelectorAll('script[id^="data-deferred-state"]').length
   const cached = indexCache.get(root)
   if (cached && cached.count === scripts) return cached.byId
   const byId = new Map<string, ListingSummary>()
+  const opts = { nightsHint: pageNightsHint(root) }
   for (const blob of readEmbeddedState(root)) {
-    for (const s of extractSearchResults(blob)) byId.set(s.id, s)
+    for (const s of extractSearchResults(blob, opts)) byId.set(s.id, s)
   }
   indexCache.set(root, { count: scripts, byId })
   return byId
@@ -61,6 +74,7 @@ const summaryCache = new WeakMap<Element, { summary: ListingSummary; source: 'js
 export function summarizeCard(
   card: HTMLElement,
   index: Map<string, ListingSummary>,
+  nightsHint?: number,
 ): { summary: ListingSummary; source: 'json' | 'dom' } | null {
   const cached = summaryCache.get(card)
   if (cached) return cached
@@ -69,7 +83,7 @@ export function summarizeCard(
   let result: { summary: ListingSummary; source: 'json' | 'dom' } | null = null
   if (fromJson) {
     // JSON may lack Superhost/rating in odd cases; let the DOM fill gaps.
-    const dom = readCardFromDom(card)
+    const dom = readCardFromDom(card, nightsHint)
     result = {
       source: 'json',
       summary: {
@@ -80,10 +94,11 @@ export function summarizeCard(
         total: fromJson.total ?? dom?.total ?? null,
         nights: fromJson.nights ?? dom?.nights ?? null,
         perNight: fromJson.perNight ?? dom?.perNight ?? null,
+        nightlyBase: fromJson.nightlyBase ?? dom?.nightlyBase ?? null,
       },
     }
   } else {
-    const dom = readCardFromDom(card)
+    const dom = readCardFromDom(card, nightsHint)
     if (dom) result = { source: 'dom', summary: dom }
   }
   if (result) summaryCache.set(card, result)
@@ -142,8 +157,8 @@ export function renderPerNight(card: HTMLElement, s: ListingSummary): void {
     existing?.remove()
     return
   }
-  const text = `${formatMoney(s.perNight, s.total.currency)}/night all-in`
-  const title = `${formatMoney(s.total.amount, s.total.currency)} total ÷ ${s.nights} nights`
+  const text = `${formatMoney(s.perNight, s.total.currency, s.total.suffix)}/night all-in`
+  const title = `${formatMoney(s.total.amount, s.total.currency, s.total.suffix)} total ÷ ${s.nights} nights`
   if (existing) {
     if (existing.textContent !== text) existing.textContent = text
     if (existing.title !== title) existing.title = title
@@ -181,6 +196,7 @@ export function augmentSearchPage(
   root: ParentNode = document,
 ): SearchAugmentResult {
   const index = listingIndex(root)
+  const nightsHint = pageNightsHint(root)
   const cards = findCards(root)
   const result: SearchAugmentResult = {
     total: cards.length,
@@ -189,11 +205,14 @@ export function augmentSearchPage(
     fromJson: 0,
     fromDom: 0,
     unresolved: 0,
+    noPrice: 0,
+    listedOnly: 0,
+    noRating: 0,
   }
   const active = filtersActive(filters)
 
   for (const card of cards) {
-    const resolved = guarded('summarizeCard', () => summarizeCard(card, index))
+    const resolved = guarded('summarizeCard', () => summarizeCard(card, index, nightsHint))
     if (!resolved) {
       result.unresolved++
       setCardHidden(card, false)
@@ -203,6 +222,10 @@ export function augmentSearchPage(
     if (resolved.source === 'json') result.fromJson++
     else result.fromDom++
     const s = resolved.summary
+    const fp = filterPrice(s)
+    if (fp === null) result.noPrice++
+    else if (fp.basis === 'listed') result.listedOnly++
+    if (s.rating === null) result.noRating++
 
     guarded('renderRatingBadge', () => {
       renderRatingBadge(card, s)

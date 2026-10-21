@@ -29,6 +29,10 @@ describe('mountPanel', () => {
 
     handle.setCount(12, 40)
     expect(document.querySelector('.lens-panel-count')?.textContent).toBe('Showing 12 of 40')
+    expect(document.querySelector<HTMLElement>('.lens-note')?.hidden).toBe(true)
+    handle.setCount(12, 40, '3 without an all-in price (shown, not filtered)')
+    expect(document.querySelector<HTMLElement>('.lens-note')?.hidden).toBe(false)
+    expect(document.querySelector('.lens-note')?.textContent).toContain('3 without')
 
     const panel = document.querySelector<HTMLElement>('#lens-panel')
     const superhost = panel?.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')[1]
@@ -73,9 +77,9 @@ describe('panel number fields', () => {
     expect(onFiltersChange).toHaveBeenCalledWith({ minReviews: 10 })
 
     maxNightly.focus()
-    maxNightly.value = '500'
+    maxNightly.value = '$1,500'
     maxNightly.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }))
-    expect(onFiltersChange).toHaveBeenCalledWith({ maxNightly: 500 })
+    expect(onFiltersChange).toHaveBeenCalledWith({ maxNightly: 1500 })
 
     // Once nothing is focused, stored values do get applied.
     maxNightly.blur()

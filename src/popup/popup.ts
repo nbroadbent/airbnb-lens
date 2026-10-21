@@ -5,6 +5,7 @@ import {
   DEFAULT_FILTERS,
   loadSettings,
   onSettingsChange,
+  parseLenientInt,
   type Settings,
   updateSettings,
 } from '../lib/settings'
@@ -177,8 +178,7 @@ function render(s: Settings): void {
 }
 
 function numberOrNull(input: HTMLInputElement): number | null {
-  const v = input.valueAsNumber
-  return Number.isFinite(v) ? v : null
+  return parseLenientInt(input.value)
 }
 
 function wire(): void {

@@ -64,7 +64,12 @@ Objects with `__typename: "StaySearchResult"` anywhere under `niobeClientData`:
 - `avgRatingLocalized`: `"4.96 (49)"`; `avgRatingA11yLabel`: `"4.96 out of 5 average rating,  49 reviews"`
 - `badges[].text`: `"Guest favorite"` / `"Superhost"`
 - `demandStayListing.id`: base64 of `DemandStayListing:<numeric id>`
-- `structuredDisplayPrice.primaryLine.{price|discountedPrice}`: `"RM 2,340"`, `.qualifier`: `"for 4 nights"`
+- `structuredDisplayPrice.primaryLine` comes in three shapes (all have `accessibilityLabel`, e.g. `"$909 for 5 nights"`):
+  - `QualifiedDisplayPriceLine`: `price: "RM 2,340"`, `qualifier: "for 4 nights"`
+  - `DiscountedDisplayPriceLine`: `discountedPrice`, `originalPrice`, `qualifier`
+  - `OrderedDisplayPriceLine`: `orderedComponents: [{ discountedPrice | price }, { qualifier }]` (fixture: `search-ssr-nodates-usd.html`)
+  - `REGULATED_TOTAL` style (Canada): `price: "$926 CAD"`, `qualifier: "total"`; nights come from `explanationData.priceDetails[].items[].description` ("4 nights x $201.51 CAD") or the URL dates (fixture: `search-cad-regulated.html`)
+  - nightly-only: `qualifier: "night"` / label `"$150 per night"` → treated as a listed base rate (fees unknown); only used to hide cards whose base rate already exceeds the cap
 - `structuredDisplayPrice.displayPriceStyle`: `"TOTAL_ONLY"` (page banner: "Prices include all fees")
 
 ## Page-type detection (URL patterns, not selectors)
