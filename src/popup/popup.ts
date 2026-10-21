@@ -126,7 +126,9 @@ function requestAirbnbPermission(): Promise<boolean> {
 type Tone = 'ok' | 'warn' | 'bad' | 'idle'
 
 function setStatus(tone: Tone, text: string): void {
-  ui.statusDot.className = `dot${tone === 'idle' ? '' : ` ${tone}`}`
+  const box = ui.statusText.parentElement
+  if (box) box.className = `status${tone === 'idle' ? '' : ` ${tone}`}`
+  ui.statusDot.className = 'dot'
   ui.statusText.textContent = text
 }
 

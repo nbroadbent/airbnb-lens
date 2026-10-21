@@ -57,19 +57,19 @@ export function mountPanel(opts: PanelOptions, root: ParentNode = document): Pan
 
   // Header (drag handle)
   const header = el('div', { class: 'lens-panel-header' })
-  const title = el('span', { class: 'lens-panel-title' }, 'Airbnb Lens')
+  const mark = el('span', { class: 'lens-mark', 'aria-hidden': 'true' })
+  const title = el('span', { class: 'lens-panel-title' }, 'Lens')
   const count = el('span', { class: 'lens-panel-count', 'aria-live': 'polite' }, '')
-  const toggle = el(
-    'button',
-    {
-      class: 'lens-panel-toggle',
-      type: 'button',
-      'aria-expanded': String(!state.collapsed),
-      title: 'Collapse / expand',
-    },
-    state.collapsed ? '▴' : '▾',
-  )
-  header.append(title, count, toggle)
+  const toggle = el('button', {
+    class: 'lens-panel-toggle',
+    type: 'button',
+    'aria-expanded': String(!state.collapsed),
+    'aria-label': 'Collapse or expand filters',
+    title: 'Collapse / expand',
+  })
+  toggle.innerHTML =
+    '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6l5 5 5-5"/></svg>'
+  header.append(mark, title, count, toggle)
 
   // Body
   const body = el('div', { class: 'lens-panel-body' })
@@ -132,7 +132,7 @@ export function mountPanel(opts: PanelOptions, root: ParentNode = document): Pan
   )
   const hideUnrated = el('input', { type: 'checkbox' })
   const superhostOnly = el('input', { type: 'checkbox' })
-  const reset = el('button', { type: 'button', class: 'lens-btn' }, 'Reset filters')
+  const reset = el('button', { type: 'button', class: 'lens-btn' }, 'Clear filters')
 
   const noteLine = el('div', { class: 'lens-note', hidden: '' })
   body.append(
@@ -228,7 +228,6 @@ export function mountPanel(opts: PanelOptions, root: ParentNode = document): Pan
     state.collapsed = !state.collapsed
     panel.classList.toggle('lens-collapsed', state.collapsed)
     toggle.setAttribute('aria-expanded', String(!state.collapsed))
-    toggle.textContent = state.collapsed ? '▴' : '▾'
     opts.onStateChange({ ...state })
   })
 

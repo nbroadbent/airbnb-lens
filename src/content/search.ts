@@ -180,13 +180,17 @@ export function renderPerNight(card: HTMLElement, s: ListingSummary): void {
           : ''
       }`
     : `${formatMoney(s.total?.amount ?? 0, cur.currency, cur.suffix)} total ÷ ${s.nights} nights${base}`
+  const amount = formatMoney(s.perNight, cur.currency, cur.suffix)
   if (existing) {
-    if (existing.textContent !== text) existing.textContent = text
+    if (existing.textContent !== text) {
+      existing.replaceChildren(el('strong', {}, amount), el('span', {}, '/night all-in'))
+    }
     if (existing.title !== title) existing.title = title
     return
   }
   const d = docOf(card)
-  const node = el('div', { class: 'lens-pernight', 'data-lens-price': '1', title }, text)
+  const node = el('div', { class: 'lens-pernight', 'data-lens-price': '1', title })
+  node.append(el('strong', {}, amount), el('span', {}, '/night all-in'))
   d.adoptNode(node)
   const anchor =
     findPriceForNights(card)?.el.closest('[data-testid="price-availability-row"]') ??
