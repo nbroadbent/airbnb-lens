@@ -1,6 +1,11 @@
 import { AIRBNB_MATCH_PATTERNS, isAirbnbHost } from '../domains'
 import { log } from '../lib/log'
-import type { PingRequest, PingResponse } from '../lib/messages'
+import type {
+  DiagnosticsRequest,
+  DiagnosticsResponse,
+  PingRequest,
+  PingResponse,
+} from '../lib/messages'
 import {
   DEFAULT_FILTERS,
   loadSettings,
@@ -40,6 +45,9 @@ const ui = {
   showStatusPill: $<HTMLInputElement>('showStatusPill'),
   reset: $<HTMLButtonElement>('reset'),
   version: $<HTMLElement>('version'),
+  diag: $<HTMLButtonElement>('diag'),
+  diagNote: $<HTMLElement>('diag-note'),
+  diagOut: $<HTMLTextAreaElement>('diag-out'),
 }
 
 /* ---------- Promise wrappers over callback APIs (work in Chrome and Firefox) ---------- */
@@ -64,6 +72,24 @@ function ping(tabId: number): Promise<PingResponse | undefined> {
         }
         const r = res as Partial<PingResponse> | undefined
         resolve(r && r.type === 'lens:pong' ? (r as PingResponse) : undefined)
+      })
+    } catch {
+      resolve(undefined)
+    }
+  })
+}
+
+function diagnostics(tabId: number): Promise<DiagnosticsResponse | undefined> {
+  const req: DiagnosticsRequest = { type: 'lens:diagnostics' }
+  return new Promise((resolve) => {
+    try {
+      chrome.tabs.sendMessage(tabId, req, (res: unknown) => {
+        if (chrome.runtime.lastError) {
+          resolve(undefined)
+          return
+        }
+        const r = res as Partial<DiagnosticsResponse> | undefined
+        resolve(r && r.type === 'lens:diagnostics-result' ? (r as DiagnosticsResponse) : undefined)
       })
     } catch {
       resolve(undefined)
@@ -260,6 +286,33 @@ function wire(): void {
 
   ui.reset.addEventListener('click', () => {
     void updateSettings({ filters: { ...DEFAULT_FILTERS } }).then(render)
+  })
+
+  ui.diag.addEventListener('click', () => {
+    void (async () => {
+      const tab = await activeTab()
+      const d = tab?.id !== undefined ? await diagnostics(tab.id) : undefined
+      const text = d
+        ? JSON.stringify(d, null, 1)
+        : JSON.stringify(
+            {
+              error: 'Lens is not running on this tab',
+              version: chrome.runtime.getManifest().version,
+              url: tab?.url ?? null,
+            },
+            null,
+            1,
+          )
+      ui.diagOut.value = text
+      ui.diagOut.hidden = false
+      try {
+        await navigator.clipboard.writeText(text)
+        ui.diagNote.textContent = 'Copied to clipboard. Paste it into the chat.'
+      } catch {
+        ui.diagNote.textContent = 'Select the text below and copy it.'
+      }
+      ui.diagNote.hidden = false
+    })()
   })
 
   ui.grant.addEventListener('click', () => {

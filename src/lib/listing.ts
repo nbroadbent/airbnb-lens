@@ -236,6 +236,21 @@ export function summarizeSearchResult(
 }
 
 /** Every listing summary found anywhere in a parsed embedded-state tree. De-duplicated by id. */
+/** Raw structuredDisplayPrice per listing id from the last extraction, for diagnostics. */
+export const rawPriceById = new Map<string, unknown>()
+
+function stripLogging(v: unknown): unknown {
+  try {
+    return JSON.parse(
+      JSON.stringify(v, (k, val: unknown) =>
+        k === 'loggingMetadata' || k === 'loggingContext' ? undefined : val,
+      ),
+    ) as unknown
+  } catch {
+    return undefined
+  }
+}
+
 export function extractSearchResults(root: unknown, opts: SummarizeOptions = {}): ListingSummary[] {
   const seen = new Set<string>()
   const out: ListingSummary[] = []
@@ -244,6 +259,7 @@ export function extractSearchResults(root: unknown, opts: SummarizeOptions = {})
     if (s && !seen.has(s.id)) {
       seen.add(s.id)
       out.push(s)
+      rawPriceById.set(s.id, stripLogging(o.structuredDisplayPrice))
     }
   }
   return out

@@ -1,9 +1,14 @@
 import { logPageDiagnostics, removeStatusPill, renderStatusPill } from './hello'
 import { DEFAULT_PANEL_STATE, mountPanel, type PanelHandle, type PanelState } from './panel'
-import { augmentSearchPage, teardownSearchPage } from './search'
+import { augmentSearchPage, collectDiagnostics, teardownSearchPage } from './search'
 import { LENS_ATTR } from '../lib/dom'
 import { guarded, log } from '../lib/log'
-import { isPingRequest, type PingResponse } from '../lib/messages'
+import {
+  isDiagnosticsRequest,
+  isPingRequest,
+  type DiagnosticsResponse,
+  type PingResponse,
+} from '../lib/messages'
 import { classifyPage } from '../lib/page'
 import {
   DEFAULT_FILTERS,
@@ -119,15 +124,33 @@ function augment(reason: string): void {
 /** Let the popup ask "are you alive, and what page is this?" */
 function listenForPing(): void {
   chrome.runtime.onMessage.addListener((msg: unknown, _sender, sendResponse) => {
-    if (!isPingRequest(msg)) return
-    const res: PingResponse = {
-      type: 'lens:pong',
-      version: chrome.runtime.getManifest().version,
-      page: classifyPage(location.href),
-      enabled: settings.enabled,
-      url: location.href,
+    if (isPingRequest(msg)) {
+      const res: PingResponse = {
+        type: 'lens:pong',
+        version: chrome.runtime.getManifest().version,
+        page: classifyPage(location.href),
+        enabled: settings.enabled,
+        url: location.href,
+      }
+      sendResponse(res)
+      return
     }
-    sendResponse(res)
+    if (isDiagnosticsRequest(msg)) {
+      const diag = guarded('collectDiagnostics', () => collectDiagnostics())
+      const res: DiagnosticsResponse = {
+        type: 'lens:diagnostics-result',
+        version: chrome.runtime.getManifest().version,
+        url: location.href,
+        page: classifyPage(location.href),
+        settings,
+        lastResult: diag?.lastResult ?? null,
+        nightsHint: diag?.nightsHint,
+        embeddedStateScripts: diag?.embeddedStateScripts ?? 0,
+        indexSize: diag?.indexSize ?? 0,
+        cards: diag?.cards ?? [],
+      }
+      sendResponse(res)
+    }
   })
 }
 

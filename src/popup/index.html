@@ -90,6 +90,12 @@
       <button id="reset" class="btn btn-ghost">Reset filters</button>
     </section>
 
+    <section class="diag">
+      <button id="diag" class="btn btn-ghost">Copy diagnostics</button>
+      <p class="note" id="diag-note" hidden></p>
+      <textarea id="diag-out" readonly hidden rows="6" aria-label="Diagnostics"></textarea>
+    </section>
+
     <footer><span id="version"></span> · Unaffiliated with Airbnb · No network requests</footer>
 
     <script type="module" src="./popup.ts"></script>

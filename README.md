@@ -107,6 +107,9 @@ The popup also has:
   settings.
 - **Show status pill** — the small pill shown on listing pages (where there is no
   panel yet).
+- **Copy diagnostics** — when something looks wrong, click this on the Airbnb tab and
+  paste the result into a bug report. It contains what Lens read from the page, with
+  any cards it could not price listed first. No account data is included.
 
 All settings sync across your browsers through `chrome.storage.sync` when you are
 signed in; otherwise they're local to the profile.
