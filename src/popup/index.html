@@ -56,7 +56,13 @@
       </label>
 
       <label class="field">
-        <span class="field-label">Max all-in price / night</span>
+        <span class="field-label">
+          Max price
+          <select id="priceBasis" class="basis" aria-label="Price basis">
+            <option value="nightly">per night</option>
+            <option value="total">stay total</option>
+          </select>
+        </span>
         <input
           type="text"
           id="maxNightly"
