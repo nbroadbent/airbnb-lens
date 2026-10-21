@@ -56,20 +56,21 @@ export interface ListingSummary {
 
 export interface PriceFigure {
   amount: number
-  basis: 'all-in' | 'listed' | 'nightly'
+  basis: 'nightly' | 'listed' | 'total'
 }
 
 /**
- * The per-night figure the price filter compares against.
- *   all-in:  total ÷ nights; if no total is shown, the listed nightly rate (which
- *            can only go up once fees are added, so hiding on it is safe).
- *   nightly: the rate before fees; null when unknown (no inference possible).
+ * The figure the price filter compares against.
+ *   nightly: all-in total ÷ nights; if no total is shown, the listed nightly rate
+ *            (which can only go up once fees are added, so hiding on it is safe).
+ *   total:   the stay total exactly as Airbnb shows it; null when only a nightly
+ *            rate is shown (no inference possible).
  */
-export function filterPrice(l: ListingSummary, basis: PriceBasis = 'all-in'): PriceFigure | null {
-  if (basis === 'nightly') {
-    return l.nightlyBase ? { amount: l.nightlyBase.amount, basis: 'nightly' } : null
+export function filterPrice(l: ListingSummary, basis: PriceBasis = 'nightly'): PriceFigure | null {
+  if (basis === 'total') {
+    return l.total ? { amount: l.total.amount, basis: 'total' } : null
   }
-  if (l.perNight !== null) return { amount: l.perNight, basis: 'all-in' }
+  if (l.perNight !== null) return { amount: l.perNight, basis: 'nightly' }
   if (l.nightlyBase) return { amount: l.nightlyBase.amount, basis: 'listed' }
   return null
 }

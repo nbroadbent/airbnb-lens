@@ -245,7 +245,7 @@ function wire(): void {
   wireNumber(ui.maxNightly, 'maxNightly')
   ui.priceBasis.addEventListener('change', () => {
     void updateSettings({
-      filters: { priceBasis: ui.priceBasis.value === 'nightly' ? 'nightly' : 'all-in' },
+      filters: { priceBasis: ui.priceBasis.value === 'total' ? 'total' : 'nightly' },
     }).then(render)
   })
   ui.hideUnrated.addEventListener('change', () => {

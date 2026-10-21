@@ -98,12 +98,12 @@ describe('panel number fields', () => {
     })
     const sel = document.querySelector<HTMLSelectElement>('[data-lens-field="priceBasis"]')
     if (!sel) throw new Error('select missing')
-    expect(sel.value).toBe('all-in')
-    sel.value = 'nightly'
-    sel.dispatchEvent(new Event('change'))
-    expect(onFiltersChange).toHaveBeenCalledWith({ priceBasis: 'nightly' })
-    handle.setFilters({ ...DEFAULT_FILTERS, priceBasis: 'nightly' })
     expect(sel.value).toBe('nightly')
+    sel.value = 'total'
+    sel.dispatchEvent(new Event('change'))
+    expect(onFiltersChange).toHaveBeenCalledWith({ priceBasis: 'total' })
+    handle.setFilters({ ...DEFAULT_FILTERS, priceBasis: 'total' })
+    expect(sel.value).toBe('total')
   })
 
   it('keeps keystrokes inside the panel', () => {

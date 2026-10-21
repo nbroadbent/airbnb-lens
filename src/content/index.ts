@@ -94,7 +94,7 @@ function augment(reason: string): void {
         notes.push(`${result.listedOnly} priced by listed nightly rate (fees unknown)`)
       if (settings.filters.maxNightly !== null && result.noPrice > 0)
         notes.push(
-          `${result.noPrice} without ${settings.filters.priceBasis === 'nightly' ? 'a nightly rate' : 'a price'} (shown, not filtered)`,
+          `${result.noPrice} without ${settings.filters.priceBasis === 'total' ? 'a stay total' : 'a price'} (shown, not filtered)`,
         )
       if (result.unresolved > 0) notes.push(`${result.unresolved} unreadable`)
       p?.setCount(result.shown, result.total, notes.length ? notes.join(' · ') : undefined)

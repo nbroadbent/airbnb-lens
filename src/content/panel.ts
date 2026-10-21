@@ -127,8 +127,8 @@ export function mountPanel(opts: PanelOptions, root: ParentNode = document): Pan
     'aria-label': 'Price basis',
   })
   priceBasis.append(
-    el('option', { value: 'all-in' }, 'all-in'),
-    el('option', { value: 'nightly' }, 'nightly rate'),
+    el('option', { value: 'nightly' }, 'per night (all-in)'),
+    el('option', { value: 'total' }, 'stay total'),
   )
   const hideUnrated = el('input', { type: 'checkbox' })
   const superhostOnly = el('input', { type: 'checkbox' })
@@ -139,7 +139,7 @@ export function mountPanel(opts: PanelOptions, root: ParentNode = document): Pan
     noteLine,
     field('Min rating', minRating, minRatingOut),
     field('Min reviews', minReviews),
-    field('Max price / night', maxNightly, priceBasis),
+    field('Max price', maxNightly, priceBasis),
     check('Hide listings without ratings', hideUnrated),
     check("Hide listings whose host isn't a Superhost", superhostOnly),
     reset,
@@ -204,7 +204,7 @@ export function mountPanel(opts: PanelOptions, root: ParentNode = document): Pan
   wireNumber(minReviews, 'minReviews')
   wireNumber(maxNightly, 'maxNightly')
   priceBasis.addEventListener('change', () => {
-    opts.onFiltersChange({ priceBasis: priceBasis.value === 'nightly' ? 'nightly' : 'all-in' })
+    opts.onFiltersChange({ priceBasis: priceBasis.value === 'total' ? 'total' : 'nightly' })
   })
 
   // Airbnb has document-level key handlers; don't let keystrokes in our panel reach them.
