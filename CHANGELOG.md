@@ -2,6 +2,15 @@
 
 All notable changes to Airbnb Lens. Dates are ISO (YYYY-MM-DD).
 
+## [0.3.2] — 2026-10-21
+
+### Fixed
+
+- **Popup was broken since 0.3.0**: the price-basis `<select>` never made it into
+  the popup's HTML, and the script throws at load when a control is missing. Added
+  the control and a test that fails if the popup's HTML and script ever drift apart.
+- Price basis option reads "per night" (was "per night (all-in)").
+
 ## [0.3.1] — 2026-10-21
 
 ### Changed
