@@ -7,7 +7,7 @@ import {
   hasSuperhostBadge,
   readCardFromDom,
 } from './cards'
-import { augmentSearchPage, listingIndex, teardownSearchPage } from './search'
+import { augmentSearchPage, collectDiagnostics, listingIndex, teardownSearchPage } from './search'
 import { DEFAULT_FILTERS } from '../lib/settings'
 import { loadFixture } from '../test/fixtures'
 
@@ -92,6 +92,21 @@ describe('CAD regulated-total page (fixtures/search-cad-regulated.html)', () => 
     )
     expect(cards[0]?.closest('[data-lens-hidden]')).toBeNull()
     expect(byNight.hidden).toBe(0)
+  })
+})
+
+describe('collectDiagnostics', () => {
+  it('reports what Lens sees, problem cards first', () => {
+    const doc = loadFixture('search-cad-regulated.html')
+    augmentSearchPage(DEFAULT_FILTERS, doc)
+    const d = collectDiagnostics(doc)
+    expect(d.lastResult?.total).toBeGreaterThan(0)
+    expect(d.nightsHint).toBe(4)
+    expect(d.embeddedStateScripts).toBeGreaterThan(0)
+    expect(d.cards.length).toBeLessThanOrEqual(6)
+    expect(d.cards[0]).toMatchObject({ source: 'json', nights: 4 })
+    expect(d.cards[0]?.priceRowText).toContain('CAD total')
+    expect(d.cards[0]?.jsonPrice).toMatchObject({ displayPriceStyle: 'REGULATED_TOTAL' })
   })
 })
 

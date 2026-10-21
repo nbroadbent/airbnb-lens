@@ -18,7 +18,14 @@ import {
 import { el } from '../lib/dom'
 import { readEmbeddedState } from '../lib/embedded'
 import { filtersActive, passesFilters } from '../lib/filter'
-import { extractSearchResults, filterPrice, type ListingSummary } from '../lib/listing'
+import {
+  extractSearchResults,
+  filterPrice,
+  rawPriceById,
+  type ListingSummary,
+} from '../lib/listing'
+import type { CardDiagnostic } from '../lib/messages'
+import { formatMoney as fm } from '../lib/price'
 import { guarded, log } from '../lib/log'
 import { formatMoney, nightsFromUrl } from '../lib/price'
 import { calibrateRating } from '../lib/rating'
@@ -41,6 +48,9 @@ export interface SearchAugmentResult {
   noRating: number
 }
 
+let lastResult: SearchAugmentResult | null = null
+const warnedNoPrice = new Set<string>()
+
 const HIDE_ORIGINAL = 'data-lens-hide-original'
 const HIDDEN = 'data-lens-hidden'
 
@@ -48,10 +58,10 @@ const HIDDEN = 'data-lens-hidden'
 
 const indexCache = new WeakMap<ParentNode, { count: number; byId: Map<string, ListingSummary> }>()
 
-/** Nights implied by the page's own URL, if dates are set. */
+/** Nights implied by the page's own URL, if dates are set. Uses baseURI so fixtures with a <base> work. */
 export function pageNightsHint(root: ParentNode = document): number | undefined {
-  const href = (root as Document).location?.href ?? (root.ownerDocument ?? document).location.href
-  return nightsFromUrl(href)
+  const doc = root instanceof Document ? root : (root.ownerDocument ?? document)
+  return nightsFromUrl(doc.baseURI)
 }
 
 export function listingIndex(root: ParentNode = document): Map<string, ListingSummary> {
@@ -226,8 +236,17 @@ export function augmentSearchPage(
     else result.fromDom++
     const s = resolved.summary
     const fp = filterPrice(s, filters.priceBasis)
-    if (fp === null) result.noPrice++
-    else if (fp.basis === 'listed') result.listedOnly++
+    if (fp === null) {
+      result.noPrice++
+      if (!warnedNoPrice.has(s.id)) {
+        warnedNoPrice.add(s.id)
+        log.warn(
+          `no ${filters.priceBasis} price for card ${s.id}:`,
+          priceRowText(card),
+          rawPriceById.get(s.id),
+        )
+      }
+    } else if (fp.basis === 'listed') result.listedOnly++
     if (s.rating === null) result.noRating++
 
     guarded('renderRatingBadge', () => {
@@ -246,7 +265,55 @@ export function augmentSearchPage(
   }
 
   log.info('search augmented', result)
+  lastResult = result
   return result
+}
+
+function priceRowText(card: Element): string | null {
+  const row = q<HTMLElement>('priceRow', card)
+  return row ? (row.textContent ?? '').replace(/\s+/g, ' ').trim() : null
+}
+
+function money(m: { amount: number; currency: string; suffix?: string } | null): string | null {
+  return m ? fm(m.amount, m.currency, m.suffix) : null
+}
+
+/** Snapshot for the popup's "Copy diagnostics": what Lens sees on this page right now. */
+export function collectDiagnostics(root: ParentNode = document): {
+  lastResult: SearchAugmentResult | null
+  nightsHint: number | undefined
+  embeddedStateScripts: number
+  indexSize: number
+  cards: CardDiagnostic[]
+} {
+  const index = listingIndex(root)
+  const nightsHint = pageNightsHint(root)
+  const all: CardDiagnostic[] = findCards(root).map((card) => {
+    const resolved = summarizeCard(card, index, nightsHint)
+    const s = resolved?.summary
+    return {
+      id: s?.id ?? cardId(card),
+      source: resolved?.source ?? 'unresolved',
+      title: s?.title ?? null,
+      priceRowText: priceRowText(card),
+      rating: s?.rating ?? null,
+      reviews: s?.reviews ?? null,
+      total: money(s?.total ?? null),
+      nights: s?.nights ?? null,
+      perNight: s?.perNight ?? null,
+      nightlyBase: money(s?.nightlyBase ?? null),
+      jsonPrice: s ? rawPriceById.get(s.id) : undefined,
+    }
+  })
+  const problem = all.filter((c) => c.source === 'unresolved' || c.perNight === null)
+  const fine = all.filter((c) => !problem.includes(c))
+  return {
+    lastResult,
+    nightsHint,
+    embeddedStateScripts: root.querySelectorAll('script[id^="data-deferred-state"]').length,
+    indexSize: index.size,
+    cards: [...problem, ...fine].slice(0, 6),
+  }
 }
 
 /** Undo everything this module did on the page (used when Lens is switched off). */

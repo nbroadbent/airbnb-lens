@@ -2,6 +2,16 @@
 
 All notable changes to Airbnb Lens. Dates are ISO (YYYY-MM-DD).
 
+## [0.3.3] — 2026-10-21
+
+### Added
+
+- **Copy diagnostics** button in the popup: captures version, URL, settings, the last
+  augmentation counts, and up to six cards (unpriced ones first) with their price-row
+  text and raw embedded price JSON. Copies to the clipboard and shows the text.
+- Console warns once per card that Lens cannot price, with the price-row text and
+  raw JSON, under the `[Lens]` prefix.
+
 ## [0.3.2] — 2026-10-21
 
 ### Fixed
