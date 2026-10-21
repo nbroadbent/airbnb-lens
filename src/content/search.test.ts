@@ -78,19 +78,20 @@ describe('CAD regulated-total page (fixtures/search-cad-regulated.html)', () => 
       '$202 CAD/night before fees',
     )
 
-    // Nightly basis: 201.51 pre-fee vs 232 all-in for the first card.
-    const nightly = augmentSearchPage(
-      { ...DEFAULT_FILTERS, maxNightly: 210, priceBasis: 'nightly' },
+    // First card: $926 CAD total, $232/night. A 900 total cap hides it; a 900 per-night cap does not.
+    const byTotal = augmentSearchPage(
+      { ...DEFAULT_FILTERS, maxNightly: 900, priceBasis: 'total' },
       doc,
     )
-    expect(nightly.noPrice).toBe(0)
-    expect(cards[0]?.closest('[data-lens-hidden]')).toBeNull()
-    const allIn = augmentSearchPage(
-      { ...DEFAULT_FILTERS, maxNightly: 210, priceBasis: 'all-in' },
-      doc,
-    )
+    expect(byTotal.noPrice).toBe(0)
     expect(cards[0]?.closest('[data-lens-hidden]')).not.toBeNull()
-    expect(allIn.hidden).toBeGreaterThan(nightly.hidden)
+    expect(byTotal.hidden).toBeGreaterThan(0)
+    const byNight = augmentSearchPage(
+      { ...DEFAULT_FILTERS, maxNightly: 900, priceBasis: 'nightly' },
+      doc,
+    )
+    expect(cards[0]?.closest('[data-lens-hidden]')).toBeNull()
+    expect(byNight.hidden).toBe(0)
   })
 })
 

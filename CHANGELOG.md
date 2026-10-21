@@ -2,6 +2,16 @@
 
 All notable changes to Airbnb Lens. Dates are ISO (YYYY-MM-DD).
 
+## [0.3.1] — 2026-10-21
+
+### Changed
+
+- Price basis selector reworked after feedback: **per night (all-in)** compares the
+  cap against total ÷ nights (default); **stay total** compares it directly against
+  the total Airbnb shows ("$926 CAD total"). The pre-fee nightly basis is gone from
+  the filter (it is still shown in the card tooltip). Stored "all-in" settings map
+  to per night.
+
 ## [0.3.0] — 2026-10-21
 
 ### Added

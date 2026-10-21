@@ -35,20 +35,21 @@ describe('normalizeSettings', () => {
       minRating: 4.7,
       minReviews: null,
       maxNightly: null,
-      priceBasis: 'all-in',
+      priceBasis: 'nightly',
       hideUnrated: true,
       superhostOnly: false,
     })
   })
 
   it('normalizes priceBasis', () => {
-    expect(normalizeSettings({ filters: { priceBasis: 'nightly' } }).filters.priceBasis).toBe(
+    expect(normalizeSettings({ filters: { priceBasis: 'total' } }).filters.priceBasis).toBe('total')
+    expect(normalizeSettings({ filters: { priceBasis: 'all-in' } }).filters.priceBasis).toBe(
       'nightly',
     )
     expect(normalizeSettings({ filters: { priceBasis: 'bogus' } }).filters.priceBasis).toBe(
-      'all-in',
+      'nightly',
     )
-    expect(normalizeSettings({}).filters.priceBasis).toBe('all-in')
+    expect(normalizeSettings({}).filters.priceBasis).toBe('nightly')
   })
 
   it('keeps two decimals of rating precision', () => {
