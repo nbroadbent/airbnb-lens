@@ -2,6 +2,16 @@
 
 All notable changes to Airbnb Lens. Dates are ISO (YYYY-MM-DD).
 
+## [0.3.4] — 2026-10-21
+
+### Fixed
+
+- **Price filter did nothing on monthly searches** (stays of a month or more). Airbnb
+  shows "$5,668 CAD monthly" with no night count. Lens now reads the monthly price,
+  derives per night as monthly ÷ 30.4, and the stay total as monthly × months from
+  the URL dates. The card tooltip shows the monthly figure and the estimated stay
+  total. Fixture `fixtures/search-cad-monthly.html` with JSON and DOM tests.
+
 ## [0.3.3] — 2026-10-21
 
 ### Added

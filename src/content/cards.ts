@@ -4,7 +4,14 @@
  * rating / price / Superhost straight from the card's text.
  */
 import type { ListingSummary } from '../lib/listing'
-import { nightsFromQualifier, parseMoney, perNight } from '../lib/price'
+import {
+  NIGHTS_PER_MONTH,
+  monthsFromNights,
+  nightsFromQualifier,
+  parseMoney,
+  perNight,
+} from '../lib/price'
+import { monthlyTotal } from '../lib/listing'
 import { parseRatingText } from '../lib/rating'
 import { patterns, q, qAll, selectors } from '../selectors'
 
@@ -85,6 +92,18 @@ export function findNightlyRate(card: Element): { text: string; el: HTMLElement 
   return null
 }
 
+/** Leaf span like "$5,668 CAD monthly, originally $6,710 CAD" in the price row (monthly stays). */
+export function findPriceMonthly(card: Element): { text: string; el: HTMLElement } | null {
+  const row = q<HTMLElement>('priceRow', card)
+  if (!row) return null
+  for (const span of Array.from(row.querySelectorAll<HTMLElement>('span'))) {
+    if (span.children.length !== 0) continue
+    const t = leafText(span)
+    if (patterns.priceMonthly.test(t) && /\d/.test(t)) return { text: t, el: span }
+  }
+  return null
+}
+
 /** Leaf span like "$926 CAD total" in the price row (regulated-total style; no night count). */
 export function findPriceTotalOnly(card: Element): { text: string; el: HTMLElement } | null {
   const row = q<HTMLElement>('priceRow', card)
@@ -131,8 +150,20 @@ export function readCardFromDom(card: HTMLElement, nightsHint?: number): Listing
     }
   }
 
-  let nightlyBase: ListingSummary['nightlyBase'] = null
+  let monthly: ListingSummary['monthly'] = null
   if (!total) {
+    const mo = findPriceMonthly(card)
+    const m = mo ? patterns.priceMonthly.exec(mo.text) : null
+    monthly = parseMoney(m?.[1]) ?? null
+    const months = monthsFromNights(nightsHint)
+    if (monthly && months !== undefined && nightsHint !== undefined) {
+      total = monthlyTotal(monthly, months)
+      nights = nightsHint
+    }
+  }
+
+  let nightlyBase: ListingSummary['nightlyBase'] = null
+  if (!total && !monthly) {
     const nightly = findNightlyRate(card)
     const m = nightly ? patterns.priceNightly.exec(nightly.text) : null
     nightlyBase = m ? (parseMoney(m[1]) ?? null) : null
@@ -147,7 +178,13 @@ export function readCardFromDom(card: HTMLElement, nightsHint?: number): Listing
     guestFavorite: false,
     total,
     nights,
-    perNight: total && nights ? (perNight(total.amount, nights) ?? null) : null,
+    perNight:
+      total && nights
+        ? (perNight(total.amount, nights) ?? null)
+        : monthly
+          ? Math.round(monthly.amount / NIGHTS_PER_MONTH)
+          : null,
     nightlyBase,
+    monthly,
   }
 }

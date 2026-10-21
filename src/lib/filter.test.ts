@@ -14,6 +14,7 @@ const base: ListingSummary = {
   nights: 4,
   perNight: 500,
   nightlyBase: null,
+  monthly: null,
 }
 
 describe('filters', () => {

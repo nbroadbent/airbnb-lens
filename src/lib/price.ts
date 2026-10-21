@@ -89,6 +89,15 @@ export function nightsFromUrl(url: string | URL): number | undefined {
   return nights > 0 ? nights : undefined
 }
 
+/** Average nights per month, used to turn Airbnb's "monthly" price into per-night and stay totals. */
+export const NIGHTS_PER_MONTH = 365 / 12
+
+/** Months implied by a night count (fractional): 31 → 1.02, 45 → 1.48. */
+export function monthsFromNights(nights: number | undefined): number | undefined {
+  if (nights === undefined || nights <= 0) return undefined
+  return nights / NIGHTS_PER_MONTH
+}
+
 /** total ÷ nights, rounded to whole units. Undefined unless both are sane. */
 export function perNight(total: number, nights: number | undefined): number | undefined {
   if (!Number.isFinite(total) || nights === undefined || nights <= 0) return undefined

@@ -28,6 +28,7 @@ export interface CardDiagnostic {
   nights: number | null
   perNight: number | null
   nightlyBase: string | null
+  monthly: string | null
   /** Raw structuredDisplayPrice from the embedded JSON (loggingMetadata stripped), if the card was in it. */
   jsonPrice: unknown
 }

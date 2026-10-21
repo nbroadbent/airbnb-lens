@@ -105,6 +105,7 @@ export function summarizeCard(
         nights: fromJson.nights ?? dom?.nights ?? null,
         perNight: fromJson.perNight ?? dom?.perNight ?? null,
         nightlyBase: fromJson.nightlyBase ?? dom?.nightlyBase ?? null,
+        monthly: fromJson.monthly ?? dom?.monthly ?? null,
       },
     }
   } else {
@@ -163,15 +164,22 @@ export function renderRatingBadge(card: HTMLElement, s: ListingSummary): void {
 
 export function renderPerNight(card: HTMLElement, s: ListingSummary): void {
   const existing = card.querySelector<HTMLElement>('[data-lens-price]')
-  if (s.perNight === null || s.total === null) {
+  const cur = s.total ?? s.monthly
+  if (s.perNight === null || !cur) {
     existing?.remove()
     return
   }
-  const text = `${formatMoney(s.perNight, s.total.currency, s.total.suffix)}/night all-in`
+  const text = `${formatMoney(s.perNight, cur.currency, cur.suffix)}/night all-in`
   const base = s.nightlyBase
     ? ` · ${formatMoney(s.nightlyBase.amount, s.nightlyBase.currency, s.nightlyBase.suffix)}/night before fees`
     : ''
-  const title = `${formatMoney(s.total.amount, s.total.currency, s.total.suffix)} total ÷ ${s.nights} nights${base}`
+  const title = s.monthly
+    ? `${formatMoney(s.monthly.amount, s.monthly.currency, s.monthly.suffix)} per month ÷ 30.4 nights${
+        s.total && s.nights
+          ? ` · ≈ ${formatMoney(s.total.amount, s.total.currency, s.total.suffix)} for ${s.nights} nights`
+          : ''
+      }`
+    : `${formatMoney(s.total?.amount ?? 0, cur.currency, cur.suffix)} total ÷ ${s.nights} nights${base}`
   if (existing) {
     if (existing.textContent !== text) existing.textContent = text
     if (existing.title !== title) existing.title = title
@@ -302,6 +310,7 @@ export function collectDiagnostics(root: ParentNode = document): {
       nights: s?.nights ?? null,
       perNight: s?.perNight ?? null,
       nightlyBase: money(s?.nightlyBase ?? null),
+      monthly: money(s?.monthly ?? null),
       jsonPrice: s ? rawPriceById.get(s.id) : undefined,
     }
   })
