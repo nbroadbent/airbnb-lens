@@ -127,7 +127,7 @@ export function mountPanel(opts: PanelOptions, root: ParentNode = document): Pan
     'aria-label': 'Price basis',
   })
   priceBasis.append(
-    el('option', { value: 'nightly' }, 'per night (all-in)'),
+    el('option', { value: 'nightly' }, 'per night'),
     el('option', { value: 'total' }, 'stay total'),
   )
   const hideUnrated = el('input', { type: 'checkbox' })
