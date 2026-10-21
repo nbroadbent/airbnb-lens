@@ -87,6 +87,25 @@ describe('panel number fields', () => {
     expect(maxNightly.value).toBe('750')
   })
 
+  it('reports the price basis selector', () => {
+    const onFiltersChange = vi.fn()
+    const handle = mountPanel({
+      filters: DEFAULT_FILTERS,
+      state: DEFAULT_PANEL_STATE,
+      onFiltersChange,
+      onStateChange: vi.fn(),
+      onReset: vi.fn(),
+    })
+    const sel = document.querySelector<HTMLSelectElement>('[data-lens-field="priceBasis"]')
+    if (!sel) throw new Error('select missing')
+    expect(sel.value).toBe('all-in')
+    sel.value = 'nightly'
+    sel.dispatchEvent(new Event('change'))
+    expect(onFiltersChange).toHaveBeenCalledWith({ priceBasis: 'nightly' })
+    handle.setFilters({ ...DEFAULT_FILTERS, priceBasis: 'nightly' })
+    expect(sel.value).toBe('nightly')
+  })
+
   it('keeps keystrokes inside the panel', () => {
     mountPanel({
       filters: DEFAULT_FILTERS,

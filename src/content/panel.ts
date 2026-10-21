@@ -121,6 +121,15 @@ export function mountPanel(opts: PanelOptions, root: ParentNode = document): Pan
     autocomplete: 'off',
     'data-lens-field': 'maxNightly',
   })
+  const priceBasis = el('select', {
+    class: 'lens-select',
+    'data-lens-field': 'priceBasis',
+    'aria-label': 'Price basis',
+  })
+  priceBasis.append(
+    el('option', { value: 'all-in' }, 'all-in'),
+    el('option', { value: 'nightly' }, 'nightly rate'),
+  )
   const hideUnrated = el('input', { type: 'checkbox' })
   const superhostOnly = el('input', { type: 'checkbox' })
   const reset = el('button', { type: 'button', class: 'lens-btn' }, 'Reset filters')
@@ -130,7 +139,7 @@ export function mountPanel(opts: PanelOptions, root: ParentNode = document): Pan
     noteLine,
     field('Min rating', minRating, minRatingOut),
     field('Min reviews', minReviews),
-    field('Max all-in price / night', maxNightly),
+    field('Max price / night', maxNightly, priceBasis),
     check('Hide listings without ratings', hideUnrated),
     check("Hide listings whose host isn't a Superhost", superhostOnly),
     reset,
@@ -194,6 +203,9 @@ export function mountPanel(opts: PanelOptions, root: ParentNode = document): Pan
   }
   wireNumber(minReviews, 'minReviews')
   wireNumber(maxNightly, 'maxNightly')
+  priceBasis.addEventListener('change', () => {
+    opts.onFiltersChange({ priceBasis: priceBasis.value === 'nightly' ? 'nightly' : 'all-in' })
+  })
 
   // Airbnb has document-level key handlers; don't let keystrokes in our panel reach them.
   for (const type of ['keydown', 'keyup', 'keypress'] as const) {
@@ -264,6 +276,7 @@ export function mountPanel(opts: PanelOptions, root: ParentNode = document): Pan
     put(minRatingOut, fmtRating(f.minRating))
     put(minReviews, f.minReviews === null ? '' : String(f.minReviews))
     put(maxNightly, f.maxNightly === null ? '' : String(f.maxNightly))
+    if (priceBasis !== active && priceBasis.value !== f.priceBasis) priceBasis.value = f.priceBasis
     hideUnrated.checked = f.hideUnrated
     superhostOnly.checked = f.superhostOnly
   }

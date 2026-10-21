@@ -158,7 +158,10 @@ export function renderPerNight(card: HTMLElement, s: ListingSummary): void {
     return
   }
   const text = `${formatMoney(s.perNight, s.total.currency, s.total.suffix)}/night all-in`
-  const title = `${formatMoney(s.total.amount, s.total.currency, s.total.suffix)} total ÷ ${s.nights} nights`
+  const base = s.nightlyBase
+    ? ` · ${formatMoney(s.nightlyBase.amount, s.nightlyBase.currency, s.nightlyBase.suffix)}/night before fees`
+    : ''
+  const title = `${formatMoney(s.total.amount, s.total.currency, s.total.suffix)} total ÷ ${s.nights} nights${base}`
   if (existing) {
     if (existing.textContent !== text) existing.textContent = text
     if (existing.title !== title) existing.title = title
@@ -222,7 +225,7 @@ export function augmentSearchPage(
     if (resolved.source === 'json') result.fromJson++
     else result.fromDom++
     const s = resolved.summary
-    const fp = filterPrice(s)
+    const fp = filterPrice(s, filters.priceBasis)
     if (fp === null) result.noPrice++
     else if (fp.basis === 'listed') result.listedOnly++
     if (s.rating === null) result.noRating++

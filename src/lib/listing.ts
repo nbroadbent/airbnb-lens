@@ -26,7 +26,15 @@
  *   }
  */
 import { findObjects, isObject } from './embedded'
-import { nightsFromBreakdown, nightsFromQualifier, parseMoney, perNight, type Money } from './price'
+import {
+  nightlyRateFromBreakdown,
+  nightsFromBreakdown,
+  nightsFromQualifier,
+  parseMoney,
+  perNight,
+  type Money,
+} from './price'
+import type { PriceBasis } from './settings'
 import { parseRatingText } from './rating'
 
 export interface ListingSummary {
@@ -46,10 +54,21 @@ export interface ListingSummary {
   nightlyBase: Money | null
 }
 
-/** The nightly figure to filter on, and what it is. all-in beats listed. */
-export function filterPrice(
-  l: ListingSummary,
-): { amount: number; basis: 'all-in' | 'listed' } | null {
+export interface PriceFigure {
+  amount: number
+  basis: 'all-in' | 'listed' | 'nightly'
+}
+
+/**
+ * The per-night figure the price filter compares against.
+ *   all-in:  total ÷ nights; if no total is shown, the listed nightly rate (which
+ *            can only go up once fees are added, so hiding on it is safe).
+ *   nightly: the rate before fees; null when unknown (no inference possible).
+ */
+export function filterPrice(l: ListingSummary, basis: PriceBasis = 'all-in'): PriceFigure | null {
+  if (basis === 'nightly') {
+    return l.nightlyBase ? { amount: l.nightlyBase.amount, basis: 'nightly' } : null
+  }
   if (l.perNight !== null) return { amount: l.perNight, basis: 'all-in' }
   if (l.nightlyBase) return { amount: l.nightlyBase.amount, basis: 'listed' }
   return null
@@ -155,19 +174,23 @@ export function parsePriceLine(line: Record<string, unknown>): ParsedPriceLine {
 }
 
 /** First "N nights x …" description anywhere in explanationData.priceDetails. */
-export function nightsFromExplanation(
-  sdp: Record<string, unknown> | undefined,
-): number | undefined {
+export function breakdownLine(sdp: Record<string, unknown> | undefined): string | undefined {
   const ex = sdp && isObject(sdp.explanationData) ? sdp.explanationData : undefined
   const groups = ex && Array.isArray(ex.priceDetails) ? ex.priceDetails : []
   for (const g of groups) {
     const items = isObject(g) && Array.isArray(g.items) ? g.items : []
     for (const it of items) {
-      const n = isObject(it) ? nightsFromBreakdown(str(it.description)) : undefined
-      if (n !== undefined) return n
+      const d = isObject(it) ? str(it.description) : null
+      if (d && nightsFromBreakdown(d) !== undefined) return d
     }
   }
   return undefined
+}
+
+export function nightsFromExplanation(
+  sdp: Record<string, unknown> | undefined,
+): number | undefined {
+  return nightsFromBreakdown(breakdownLine(sdp))
 }
 
 export function summarizeSearchResult(
@@ -188,11 +211,14 @@ export function summarizeSearchResult(
   const parsed: ParsedPriceLine = primary
     ? parsePriceLine(primary)
     : { total: null, nights: null, nightlyBase: null }
-  const { total, nightlyBase } = parsed
+  const { total } = parsed
   let nights = parsed.nights
+  const breakdown = breakdownLine(sdp)
   if (parsed.totalNeedsNights && nights === null) {
-    nights = nightsFromExplanation(sdp) ?? opts.nightsHint ?? null
+    nights = nightsFromBreakdown(breakdown) ?? opts.nightsHint ?? null
   }
+  // Pre-fee nightly rate: breakdown line wins; a nightly-only price line is the fallback.
+  const nightlyBase: Money | null = nightlyRateFromBreakdown(breakdown) ?? parsed.nightlyBase
 
   return {
     id,

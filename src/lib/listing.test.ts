@@ -200,6 +200,8 @@ describe('extractSearchResults against the SSR fixture', () => {
       perNight: 585,
     })
     expect(all.filter((l) => l.superhost).length).toBeGreaterThanOrEqual(4)
+    expect(all[0]?.nightlyBase).toEqual({ amount: 584.77, currency: 'RM' })
+    expect(all.every((l) => l.nightlyBase !== null)).toBe(true)
     expect(all.every((l) => l.perNight !== null)).toBe(true)
     expect(new Set(all.map((l) => l.id)).size).toBe(all.length)
   })

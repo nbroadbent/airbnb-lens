@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   formatMoney,
+  nightlyRateFromBreakdown,
   nightsFromBreakdown,
   nightsFromQualifier,
   nightsFromUrl,
@@ -60,6 +61,22 @@ describe('nightsFromBreakdown', () => {
     expect(nightsFromBreakdown('1 night x $99')).toBe(1)
     expect(nightsFromBreakdown('Taxes')).toBeUndefined()
     expect(nightsFromBreakdown('Long stay discount')).toBeUndefined()
+  })
+})
+
+describe('nightlyRateFromBreakdown', () => {
+  it('reads the pre-fee nightly rate in each known format', () => {
+    expect(nightlyRateFromBreakdown('4 nights x $201.51 CAD')).toEqual({
+      amount: 201.51,
+      currency: '$',
+      suffix: 'CAD',
+    })
+    expect(nightlyRateFromBreakdown('4 nights x RM\u00a0584.77')).toEqual({
+      amount: 584.77,
+      currency: 'RM',
+    })
+    expect(nightlyRateFromBreakdown('5 nights x $135.20')).toEqual({ amount: 135.2, currency: '$' })
+    expect(nightlyRateFromBreakdown('Taxes')).toBeUndefined()
   })
 })
 

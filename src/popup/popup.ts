@@ -34,6 +34,7 @@ const ui = {
   minRatingOut: $<HTMLInputElement>('minRating-out'),
   minReviews: $<HTMLInputElement>('minReviews'),
   maxNightly: $<HTMLInputElement>('maxNightly'),
+  priceBasis: $<HTMLSelectElement>('priceBasis'),
   hideUnrated: $<HTMLInputElement>('hideUnrated'),
   superhostOnly: $<HTMLInputElement>('superhostOnly'),
   showStatusPill: $<HTMLInputElement>('showStatusPill'),
@@ -172,6 +173,7 @@ function render(s: Settings): void {
   put(ui.minRatingOut, fmtRating(s.filters.minRating))
   put(ui.minReviews, s.filters.minReviews === null ? '' : String(s.filters.minReviews))
   put(ui.maxNightly, s.filters.maxNightly === null ? '' : String(s.filters.maxNightly))
+  if (ui.priceBasis.value !== s.filters.priceBasis) ui.priceBasis.value = s.filters.priceBasis
   ui.hideUnrated.checked = s.filters.hideUnrated
   ui.superhostOnly.checked = s.filters.superhostOnly
   ui.showStatusPill.checked = s.showStatusPill
@@ -241,6 +243,11 @@ function wire(): void {
   }
   wireNumber(ui.minReviews, 'minReviews')
   wireNumber(ui.maxNightly, 'maxNightly')
+  ui.priceBasis.addEventListener('change', () => {
+    void updateSettings({
+      filters: { priceBasis: ui.priceBasis.value === 'nightly' ? 'nightly' : 'all-in' },
+    }).then(render)
+  })
   ui.hideUnrated.addEventListener('change', () => {
     void updateSettings({ filters: { hideUnrated: ui.hideUnrated.checked } }).then(render)
   })

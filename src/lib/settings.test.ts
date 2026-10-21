@@ -35,9 +35,20 @@ describe('normalizeSettings', () => {
       minRating: 4.7,
       minReviews: null,
       maxNightly: null,
+      priceBasis: 'all-in',
       hideUnrated: true,
       superhostOnly: false,
     })
+  })
+
+  it('normalizes priceBasis', () => {
+    expect(normalizeSettings({ filters: { priceBasis: 'nightly' } }).filters.priceBasis).toBe(
+      'nightly',
+    )
+    expect(normalizeSettings({ filters: { priceBasis: 'bogus' } }).filters.priceBasis).toBe(
+      'all-in',
+    )
+    expect(normalizeSettings({}).filters.priceBasis).toBe('all-in')
   })
 
   it('keeps two decimals of rating precision', () => {

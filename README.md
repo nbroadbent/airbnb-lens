@@ -25,7 +25,8 @@ are looking at.
    Lens shows nothing rather than guess.
 3. **Client-side filters** in a floating panel (bottom-right, collapsible,
    draggable) and in the toolbar popup: minimum rating, minimum review count, max
-   all-in nightly price, hide unrated, Superhost only. Hidden cards are removed from
+   price per night (compared against the all-in price or, via the selector, the
+   nightly rate before fees), hide unrated, Superhost only. Hidden cards are removed from
    the grid reversibly and the panel reads "Showing 9 of 24".
 
 Phase 2 (listing page: host scale, review trend, fee breakdown, requirements
@@ -100,8 +101,8 @@ The popup also has:
 
 - **On/Off switch** (top-right). Off removes every element Lens injected and
   un-hides any filtered cards, on every open Airbnb tab, immediately.
-- **Search filters** — minimum rating, minimum review count, maximum all-in nightly
-  price, hide unrated, Superhost only. Saved to `chrome.storage.sync` as you change
+- **Search filters** — minimum rating, minimum review count, maximum price per night
+  (all-in or nightly rate before fees, selectable), hide unrated, Superhost only. Saved to `chrome.storage.sync` as you change
   them and applied to open search tabs immediately. The on-page panel edits the same
   settings.
 - **Show status pill** — the small pill shown on listing pages (where there is no

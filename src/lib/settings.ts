@@ -6,13 +6,17 @@
  */
 import { log } from './log'
 
+export type PriceBasis = 'all-in' | 'nightly'
+
 export interface Filters {
   /** Hide cards rated below this. null = off. Range 4.0–5.0. */
   minRating: number | null
   /** Hide cards with fewer reviews than this. null = off. */
   minReviews: number | null
-  /** Hide cards whose all-in nightly price exceeds this. null = off. */
+  /** Hide cards whose per-night price exceeds this. null = off. */
   maxNightly: number | null
+  /** What maxNightly compares against: all-in (total ÷ nights) or the nightly rate before fees. */
+  priceBasis: PriceBasis
   /** Hide cards with no rating ("new" listings). */
   hideUnrated: boolean
   /** Hide cards whose host is not a Superhost. */
@@ -31,6 +35,7 @@ export const DEFAULT_FILTERS: Filters = {
   minRating: null,
   minReviews: null,
   maxNightly: null,
+  priceBasis: 'all-in',
   hideUnrated: false,
   superhostOnly: false,
 }
@@ -80,6 +85,7 @@ export function normalizeSettings(raw: unknown): Settings {
       minRating: round2(numOrNull(f.minRating, 4.0, 5.0)),
       minReviews: numOrNull(f.minReviews, 0, 100_000),
       maxNightly: numOrNull(f.maxNightly, 0, 1_000_000),
+      priceBasis: f.priceBasis === 'nightly' ? 'nightly' : 'all-in',
       hideUnrated: bool(f.hideUnrated, DEFAULT_FILTERS.hideUnrated),
       superhostOnly: bool(f.superhostOnly, DEFAULT_FILTERS.superhostOnly),
     },

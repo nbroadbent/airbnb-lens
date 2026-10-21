@@ -2,6 +2,16 @@
 
 All notable changes to Airbnb Lens. Dates are ISO (YYYY-MM-DD).
 
+## [0.3.0] — 2026-10-21
+
+### Added
+
+- **Price basis selector** next to "Max price / night" in the panel and popup:
+  **all-in** (stay total ÷ nights, the default) or **nightly rate** (the rate before
+  fees, read from Airbnb's price breakdown "4 nights x $201.51"). The card tooltip
+  shows both figures. In nightly mode, cards whose pre-fee rate is unknown are shown
+  and counted in the panel note.
+
 ## [0.2.4] — 2026-10-21
 
 ### Fixed

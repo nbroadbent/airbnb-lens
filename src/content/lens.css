@@ -169,6 +169,15 @@
   color: #222;
   font: inherit;
 }
+.lens-panel select.lens-select {
+  padding: 1px 4px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #fff;
+  color: #222;
+  font: inherit;
+  font-size: 12px;
+}
 .lens-panel .lens-field {
   display: block;
   margin: 6px 0 8px;
