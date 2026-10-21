@@ -33,6 +33,10 @@ export interface SearchAugmentResult {
   fromJson: number
   fromDom: number
   unresolved: number
+  /** Cards with no all-in nightly price (filtering by price can't touch them). */
+  noPrice: number
+  /** Cards with no rating. */
+  noRating: number
 }
 
 const HIDE_ORIGINAL = 'data-lens-hide-original'
@@ -189,6 +193,8 @@ export function augmentSearchPage(
     fromJson: 0,
     fromDom: 0,
     unresolved: 0,
+    noPrice: 0,
+    noRating: 0,
   }
   const active = filtersActive(filters)
 
@@ -203,6 +209,8 @@ export function augmentSearchPage(
     if (resolved.source === 'json') result.fromJson++
     else result.fromDom++
     const s = resolved.summary
+    if (s.perNight === null) result.noPrice++
+    if (s.rating === null) result.noRating++
 
     guarded('renderRatingBadge', () => {
       renderRatingBadge(card, s)

@@ -43,6 +43,14 @@ export const DEFAULT_SETTINGS: Settings = {
 
 const STORAGE_KEY = 'settings'
 
+/** "1,000", "$500", " 25 " → 1000, 500, 25. Empty or no digits → null. */
+export function parseLenientInt(text: string): number | null {
+  const digits = text.replace(/[^\d]/g, '')
+  if (digits === '') return null
+  const n = Number(digits)
+  return Number.isFinite(n) ? n : null
+}
+
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v)
 }

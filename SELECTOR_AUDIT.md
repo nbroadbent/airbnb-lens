@@ -64,7 +64,10 @@ Objects with `__typename: "StaySearchResult"` anywhere under `niobeClientData`:
 - `avgRatingLocalized`: `"4.96 (49)"`; `avgRatingA11yLabel`: `"4.96 out of 5 average rating,  49 reviews"`
 - `badges[].text`: `"Guest favorite"` / `"Superhost"`
 - `demandStayListing.id`: base64 of `DemandStayListing:<numeric id>`
-- `structuredDisplayPrice.primaryLine.{price|discountedPrice}`: `"RM 2,340"`, `.qualifier`: `"for 4 nights"`
+- `structuredDisplayPrice.primaryLine` comes in three shapes (all have `accessibilityLabel`, e.g. `"$909 for 5 nights"`):
+  - `QualifiedDisplayPriceLine`: `price: "RM 2,340"`, `qualifier: "for 4 nights"`
+  - `DiscountedDisplayPriceLine`: `discountedPrice`, `originalPrice`, `qualifier`
+  - `OrderedDisplayPriceLine`: `orderedComponents: [{ discountedPrice | price }, { qualifier }]` (fixture: `search-ssr-nodates-usd.html`)
 - `structuredDisplayPrice.displayPriceStyle`: `"TOTAL_ONLY"` (page banner: "Prices include all fees")
 
 ## Page-type detection (URL patterns, not selectors)

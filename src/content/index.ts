@@ -88,7 +88,13 @@ function augment(reason: string): void {
     const p = guarded('ensurePanel', ensurePanel)
     p?.setFilters(settings.filters)
     const result = guarded('augmentSearchPage', () => augmentSearchPage(settings.filters))
-    if (result) p?.setCount(result.shown, result.total)
+    if (result) {
+      const notes: string[] = []
+      if (settings.filters.maxNightly !== null && result.noPrice > 0)
+        notes.push(`${result.noPrice} without an all-in price (shown, not filtered)`)
+      if (result.unresolved > 0) notes.push(`${result.unresolved} unreadable`)
+      p?.setCount(result.shown, result.total, notes.length ? notes.join(' · ') : undefined)
+    }
   } else {
     guarded('teardownSearchPage', teardownSearchPage)
     panel?.remove()

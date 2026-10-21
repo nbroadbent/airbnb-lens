@@ -4,7 +4,7 @@
  * access in here — the caller wires persistence so this is testable in jsdom.
  */
 import { el } from '../lib/dom'
-import type { Filters } from '../lib/settings'
+import { parseLenientInt, type Filters } from '../lib/settings'
 
 export interface PanelState {
   collapsed: boolean
@@ -17,7 +17,7 @@ export const DEFAULT_PANEL_STATE: PanelState = { collapsed: false, right: 16, bo
 
 export interface PanelHandle {
   root: HTMLElement
-  setCount: (shown: number, total: number) => void
+  setCount: (shown: number, total: number, note?: string) => void
   setFilters: (f: Filters) => void
   remove: () => void
 }
@@ -106,27 +106,28 @@ export function mountPanel(opts: PanelOptions, root: ParentNode = document): Pan
     'data-lens-field': 'minRating',
     'aria-label': 'Minimum rating',
   })
+  // Text (not type=number) so "1,000" or "$500" are accepted instead of silently blanked.
   const minReviews = el('input', {
-    type: 'number',
-    min: '0',
-    step: '1',
+    type: 'text',
     placeholder: 'off',
     inputmode: 'numeric',
+    autocomplete: 'off',
     'data-lens-field': 'minReviews',
   })
   const maxNightly = el('input', {
-    type: 'number',
-    min: '0',
-    step: '1',
+    type: 'text',
     placeholder: 'off',
     inputmode: 'numeric',
+    autocomplete: 'off',
     'data-lens-field': 'maxNightly',
   })
   const hideUnrated = el('input', { type: 'checkbox' })
   const superhostOnly = el('input', { type: 'checkbox' })
   const reset = el('button', { type: 'button', class: 'lens-btn' }, 'Reset filters')
 
+  const noteLine = el('div', { class: 'lens-note', hidden: '' })
   body.append(
+    noteLine,
     field('Min rating', minRating, minRatingOut),
     field('Min reviews', minReviews),
     field('Max all-in price / night', maxNightly),
@@ -137,8 +138,7 @@ export function mountPanel(opts: PanelOptions, root: ParentNode = document): Pan
   panel.append(header, body)
 
   // ---- wiring ----
-  const numOrNull = (i: HTMLInputElement): number | null =>
-    Number.isFinite(i.valueAsNumber) ? i.valueAsNumber : null
+  const numOrNull = (i: HTMLInputElement): number | null => parseLenientInt(i.value)
 
   minRating.addEventListener('input', () => {
     minRatingOut.value = fmtRating(ratingOrNull(minRating.valueAsNumber))
@@ -274,8 +274,11 @@ export function mountPanel(opts: PanelOptions, root: ParentNode = document): Pan
 
   return {
     root: panel,
-    setCount: (shown, total) => {
+    setCount: (shown, total, note) => {
       count.textContent = total === 0 ? '' : `Showing ${shown} of ${total}`
+      count.title = note ?? ''
+      noteLine.textContent = note ?? ''
+      noteLine.hidden = !note
     },
     setFilters,
     remove: () => {

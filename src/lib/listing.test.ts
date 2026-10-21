@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { readEmbeddedState } from './embedded'
-import { decodeListingId, extractSearchResults, summarizeSearchResult } from './listing'
+import {
+  decodeListingId,
+  extractSearchResults,
+  parsePriceLine,
+  summarizeSearchResult,
+} from './listing'
 import { loadFixture } from '../test/fixtures'
 
 describe('decodeListingId', () => {
@@ -59,6 +64,46 @@ describe('summarizeSearchResult', () => {
   })
   it('returns null without an id', () => {
     expect(summarizeSearchResult({ __typename: 'StaySearchResult' })).toBeNull()
+  })
+})
+
+describe('parsePriceLine shapes', () => {
+  it('reads OrderedDisplayPriceLine components', () => {
+    expect(
+      parsePriceLine({
+        __typename: 'OrderedDisplayPriceLine',
+        accessibilityLabel: '$909 for 5 nights',
+        orderedComponents: [{ discountedPrice: '$909' }, { qualifier: 'for 5 nights' }],
+      }),
+    ).toEqual({ total: { amount: 909, currency: '$' }, nights: 5 })
+  })
+  it('falls back to the accessibility label', () => {
+    expect(
+      parsePriceLine({ accessibilityLabel: '$1,100 for 2 nights, originally $1,300' }),
+    ).toEqual({
+      total: { amount: 1100, currency: '$' },
+      nights: 2,
+    })
+  })
+  it('returns nulls for a nightly-only line', () => {
+    expect(
+      parsePriceLine({ price: '$135', qualifier: 'night', accessibilityLabel: '$135 per night' }),
+    ).toEqual({
+      total: null,
+      nights: null,
+    })
+  })
+})
+
+describe('extractSearchResults against the no-dates USD fixture', () => {
+  it('gets a per-night price for every result, including OrderedDisplayPriceLine ones', () => {
+    const doc = loadFixture('search-ssr-nodates-usd.html')
+    const all = readEmbeddedState(doc).flatMap(extractSearchResults)
+    expect(all.length).toBeGreaterThanOrEqual(24)
+    const missing = all.filter((l) => l.perNight === null)
+    expect(missing.map((l) => l.id)).toEqual([])
+    expect(all[0]?.total?.currency).toBe('$')
+    expect(all.every((l) => l.nights === 5)).toBe(true)
   })
 })
 

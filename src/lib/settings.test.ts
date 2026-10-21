@@ -1,11 +1,23 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   DEFAULT_SETTINGS,
+  parseLenientInt,
   loadSettings,
   normalizeSettings,
   saveSettings,
   updateSettings,
 } from './settings'
+
+describe('parseLenientInt', () => {
+  it('accepts human-formatted numbers', () => {
+    expect(parseLenientInt('1,000')).toBe(1000)
+    expect(parseLenientInt('$500')).toBe(500)
+    expect(parseLenientInt(' 25 ')).toBe(25)
+    expect(parseLenientInt('RM 1 200')).toBe(1200)
+    expect(parseLenientInt('')).toBeNull()
+    expect(parseLenientInt('off')).toBeNull()
+  })
+})
 
 describe('normalizeSettings', () => {
   it('returns defaults for garbage input', () => {

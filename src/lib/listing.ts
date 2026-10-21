@@ -12,7 +12,12 @@
  *     demandStayListing: { id: base64('DemandStayListing:<numeric id>') },
  *     structuredDisplayPrice: {
  *       displayPriceStyle: 'TOTAL_ONLY' | ...,
- *       primaryLine: { price | discountedPrice: 'RM 2,340', qualifier: 'for 4 nights' },
+ *       primaryLine:
+ *         // QualifiedDisplayPriceLine / DiscountedDisplayPriceLine
+ *         { price | discountedPrice: 'RM 2,340', qualifier: 'for 4 nights', accessibilityLabel: 'RM 2,340 for 4 nights' }
+ *         // OrderedDisplayPriceLine (seen 2026-10-21 on a no-dates USD page)
+ *         | { accessibilityLabel: '$909 for 5 nights',
+ *             orderedComponents: [{ discountedPrice | price: '$909' }, { qualifier: 'for 5 nights' }] },
  *       secondaryLine: null | { price: ... },
  *       explanationData: { priceDetails: [{ items: [{ description: '4 nights x RM 584.77' }] }] }
  *     }
@@ -69,6 +74,42 @@ function badgeTexts(o: Record<string, unknown>): string[] {
     .map((t) => t.toLowerCase())
 }
 
+/**
+ * Read a stay total and night count from any of the price-line shapes we know.
+ * Order: explicit fields → orderedComponents → accessibilityLabel text. Returns
+ * nulls when only a nightly rate is shown (no "for N nights" anywhere).
+ */
+export function parsePriceLine(line: Record<string, unknown>): {
+  total: Money | null
+  nights: number | null
+} {
+  let priceText = str(line.discountedPrice) ?? str(line.price)
+  let qualifier = str(line.qualifier)
+
+  const components = Array.isArray(line.orderedComponents) ? line.orderedComponents : []
+  for (const c of components) {
+    if (!isObject(c)) continue
+    priceText ??= str(c.discountedPrice) ?? str(c.price)
+    qualifier ??= str(c.qualifier)
+  }
+
+  let n = nightsFromQualifier(qualifier)
+  if (priceText && n !== undefined) {
+    const total = parseMoney(priceText) ?? null
+    return { total, nights: total ? n : null }
+  }
+
+  // Last resort: the accessible label carries both ("$909 for 5 nights, originally $1,100").
+  const label = str(line.accessibilityLabel)
+  const m = label ? /^(.+?)\s+for\s+(\d+)\s+nights?\b/i.exec(label) : null
+  if (m) {
+    n = nightsFromQualifier(`${m[2]} nights`)
+    const total = parseMoney(m[1]) ?? null
+    if (total && n !== undefined) return { total, nights: n }
+  }
+  return { total: null, nights: null }
+}
+
 export function summarizeSearchResult(o: Record<string, unknown>): ListingSummary | null {
   const listing = isObject(o.demandStayListing) ? o.demandStayListing : undefined
   const id = decodeListingId(listing?.id ?? o.listingId ?? o.id)
@@ -79,19 +120,9 @@ export function summarizeSearchResult(o: Record<string, unknown>): ListingSummar
   )
   const badges = badgeTexts(o)
 
-  let total: Money | null = null
-  let nights: number | null = null
   const sdp = isObject(o.structuredDisplayPrice) ? o.structuredDisplayPrice : undefined
   const primary = sdp && isObject(sdp.primaryLine) ? sdp.primaryLine : undefined
-  if (primary) {
-    const priceText = str(primary.discountedPrice) ?? str(primary.price)
-    const qualifier = str(primary.qualifier) ?? str(primary.accessibilityLabel)
-    const n = nightsFromQualifier(qualifier)
-    if (priceText && n !== undefined) {
-      total = parseMoney(priceText) ?? null
-      nights = n
-    }
-  }
+  const { total, nights } = primary ? parsePriceLine(primary) : { total: null, nights: null }
 
   return {
     id,

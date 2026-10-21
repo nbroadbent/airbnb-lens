@@ -2,6 +2,21 @@
 
 All notable changes to Airbnb Lens. Dates are ISO (YYYY-MM-DD).
 
+## [0.2.3] — 2026-10-21
+
+### Fixed
+
+- Max price filter ignored some cards: Airbnb has a third price-line shape,
+  `OrderedDisplayPriceLine`, with the total and "for N nights" inside
+  `orderedComponents`. Seen on a no-dates USD search where 16 of 48 results used
+  it. The summarizer now reads that shape and falls back to the line's
+  `accessibilityLabel`. New fixture `fixtures/search-ssr-nodates-usd.html` with a test
+  asserting every result gets a per-night price.
+- Min reviews / max price fields accept "1,000" or "$500" instead of silently
+  treating them as empty (plain text inputs with lenient parsing).
+- When a price cap is active and some cards have no all-in price, the panel now says
+  so instead of silently showing them.
+
 ## [0.2.2] — 2026-10-21
 
 ### Changed
