@@ -95,6 +95,39 @@ describe('CAD regulated-total page (fixtures/search-cad-regulated.html)', () => 
   })
 })
 
+describe('monthly page (fixtures/search-cad-monthly.html)', () => {
+  it('prices cards from JSON and DOM, and both bases filter', () => {
+    const doc = loadFixture('search-cad-monthly.html')
+    const cards = findCards(doc)
+    expect(cards.length).toBeGreaterThanOrEqual(18)
+    for (const card of cards) {
+      const dom = readCardFromDom(card, 31)
+      expect(dom?.monthly, `monthly for ${dom?.id}`).not.toBeNull()
+      expect(dom?.perNight, `per night for ${dom?.id}`).not.toBeNull()
+    }
+    const r = augmentSearchPage(DEFAULT_FILTERS, doc)
+    expect(r.noPrice).toBe(0)
+    expect(cards[0]?.querySelector('[data-lens-price]')?.textContent).toBe('$186 CAD/night all-in')
+    expect(cards[0]?.querySelector<HTMLElement>('[data-lens-price]')?.title).toContain(
+      '$5,668 CAD per month',
+    )
+
+    const night = augmentSearchPage(
+      { ...DEFAULT_FILTERS, maxNightly: 180, priceBasis: 'nightly' },
+      doc,
+    )
+    expect(night.hidden).toBeGreaterThan(0)
+    expect(cards[0]?.closest('[data-lens-hidden]')).not.toBeNull()
+    const total = augmentSearchPage(
+      { ...DEFAULT_FILTERS, maxNightly: 5000, priceBasis: 'total' },
+      doc,
+    )
+    expect(total.hidden).toBeGreaterThan(0)
+    expect(total.noPrice).toBe(0)
+    teardownSearchPage(doc)
+  })
+})
+
 describe('collectDiagnostics', () => {
   it('reports what Lens sees, problem cards first', () => {
     const doc = loadFixture('search-cad-regulated.html')

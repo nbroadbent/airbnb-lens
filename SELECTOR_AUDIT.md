@@ -35,14 +35,15 @@ Rules:
 
 Text patterns (`patterns` in `src/selectors.ts`), all VERIFIED 2026-10-21 except `newListing`:
 
-| Name             | Regex (abridged)                                         | Example                                      |
-| ---------------- | -------------------------------------------------------- | -------------------------------------------- |
-| `ratingDisplay`  | `^(\d[.,]\d{1,2})\s*\((\d[\d.,]*)\)$`                    | `4.96 (49)`                                  |
-| `ratingA11y`     | `(\d[.,]\d{1,2}) out of 5 average rating, (\d+) reviews` | `4.96 out of 5 average rating,  49 reviews`  |
-| `priceForNights` | `^(.+?)\s+for\s+(\d+)\s+nights?(?:,.*)?$`                | `RM 1,919 for 4 nights, originally RM 2,264` |
-| `superhost`      | `^superhost$` (i)                                        | `Superhost`                                  |
-| `newListing`     | `^new$` (i) — UNVERIFIED                                 | `New`                                        |
-| `roomId`         | `/rooms/(?:plus/)?(\d+)`                                 | `/rooms/1399543851857782624?…`               |
+| Name             | Regex (abridged)                                           | Example                                      |
+| ---------------- | ---------------------------------------------------------- | -------------------------------------------- |
+| `ratingDisplay`  | `^(\d[.,]\d{1,2})\s*\((\d[\d.,]*)\)$`                      | `4.96 (49)`                                  |
+| `ratingA11y`     | `(\d[.,]\d{1,2}) out of 5 average rating, (\d+) reviews`   | `4.96 out of 5 average rating,  49 reviews`  |
+| `priceMonthly`   | `^(.+?)\s+(?:monthly\|per month\|/ month\|month)(?:,.*)?$` | `$5,668 CAD monthly, originally $6,710 CAD`  |
+| `priceForNights` | `^(.+?)\s+for\s+(\d+)\s+nights?(?:,.*)?$`                  | `RM 1,919 for 4 nights, originally RM 2,264` |
+| `superhost`      | `^superhost$` (i)                                          | `Superhost`                                  |
+| `newListing`     | `^new$` (i) — UNVERIFIED                                   | `New`                                        |
+| `roomId`         | `/rooms/(?:plus/)?(\d+)`                                   | `/rooms/1399543851857782624?…`               |
 
 ### Quick console checks (search page with dates set)
 
@@ -69,6 +70,7 @@ Objects with `__typename: "StaySearchResult"` anywhere under `niobeClientData`:
   - `DiscountedDisplayPriceLine`: `discountedPrice`, `originalPrice`, `qualifier`
   - `OrderedDisplayPriceLine`: `orderedComponents: [{ discountedPrice | price }, { qualifier }]` (fixture: `search-ssr-nodates-usd.html`)
   - `REGULATED_TOTAL` style (Canada): `price: "$926 CAD"`, `qualifier: "total"`; nights come from `explanationData.priceDetails[].items[].description` ("4 nights x $201.51 CAD") or the URL dates (fixture: `search-cad-regulated.html`)
+  - monthly stays: `discountedPrice | price: "$5,668 CAD"`, `qualifier: "monthly"`, label `"$5,668 CAD monthly, originally $6,710 CAD"`; breakdown has "Monthly total", no nights line (fixture: `search-cad-monthly.html`)
   - nightly-only: `qualifier: "night"` / label `"$150 per night"` → treated as a listed base rate (fees unknown); only used to hide cards whose base rate already exceeds the cap
 - `structuredDisplayPrice.displayPriceStyle`: `"TOTAL_ONLY"` (page banner: "Prices include all fees")
 

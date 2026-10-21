@@ -164,6 +164,51 @@ describe('regulated-total style (Canada)', () => {
   })
 })
 
+describe('monthly stays', () => {
+  const line = {
+    __typename: 'DiscountedDisplayPriceLine',
+    accessibilityLabel: '$5,668 CAD monthly, originally $6,710 CAD',
+    discountedPrice: '$5,668 CAD',
+    originalPrice: '$6,710 CAD',
+    qualifier: 'monthly',
+  }
+  it('reads the monthly price from the line', () => {
+    expect(parsePriceLine(line)).toMatchObject({
+      total: null,
+      nights: null,
+      monthly: { amount: 5668, currency: '$', suffix: 'CAD' },
+    })
+    expect(parsePriceLine({ accessibilityLabel: '$3,000 per month' }).monthly).toEqual({
+      amount: 3000,
+      currency: '$',
+    })
+  })
+  it('derives per-night and, with the stay length, a total', () => {
+    const base = {
+      __typename: 'StaySearchResult',
+      demandStayListing: { id: '5' },
+      structuredDisplayPrice: { primaryLine: line },
+    }
+    const withDates = summarizeSearchResult(base, { nightsHint: 31 })
+    expect(withDates).toMatchObject({ monthly: { amount: 5668 }, nights: 31, perNight: 186 })
+    expect(withDates?.total?.amount).toBe(Math.round((5668 * 31) / (365 / 12)))
+    const noDates = summarizeSearchResult(base)
+    expect(noDates).toMatchObject({
+      monthly: { amount: 5668 },
+      total: null,
+      nights: null,
+      perNight: 186,
+    })
+  })
+  it('prices every result in the monthly fixture', () => {
+    const doc = loadFixture('search-cad-monthly.html')
+    const all = readEmbeddedState(doc).flatMap((b) => extractSearchResults(b, { nightsHint: 31 }))
+    expect(all.length).toBeGreaterThanOrEqual(18)
+    expect(all.filter((l) => l.perNight === null).map((l) => l.id)).toEqual([])
+    expect(all.every((l) => l.monthly !== null && l.total !== null)).toBe(true)
+  })
+})
+
 describe('extractSearchResults against the no-dates USD fixture', () => {
   it('gets a per-night price for every result, including OrderedDisplayPriceLine ones', () => {
     const doc = loadFixture('search-ssr-nodates-usd.html')

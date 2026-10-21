@@ -27,6 +27,8 @@
  */
 import { findObjects, isObject } from './embedded'
 import {
+  NIGHTS_PER_MONTH,
+  monthsFromNights,
   nightlyRateFromBreakdown,
   nightsFromBreakdown,
   nightsFromQualifier,
@@ -52,6 +54,8 @@ export interface ListingSummary {
   perNight: number | null
   /** The listed nightly rate when Airbnb shows no stay total ("$150 night"). Fees not included. */
   nightlyBase: Money | null
+  /** All-in price per month, shown for stays of a month or more ("$5,668 CAD monthly"). */
+  monthly: Money | null
 }
 
 export interface PriceFigure {
@@ -116,6 +120,7 @@ export interface ParsedPriceLine {
   total: Money | null
   nights: number | null
   nightlyBase: Money | null
+  monthly?: Money | null
   /** True when the line is a stay total whose night count must come from elsewhere. */
   totalNeedsNights?: boolean
 }
@@ -126,6 +131,7 @@ export interface SummarizeOptions {
 }
 
 const NIGHTLY_RE = /^(.+?)\s*(?:per|\/|\u00b7)?\s*night$/i
+const MONTHLY_RE = /^(.+?)\s+(?:monthly|per month|\/\s*month|month)(?:,.*)?$/i
 
 export function parsePriceLine(line: Record<string, unknown>): ParsedPriceLine {
   let priceText = str(line.discountedPrice) ?? str(line.price)
@@ -153,6 +159,14 @@ export function parsePriceLine(line: Record<string, unknown>): ParsedPriceLine {
     const total = parseMoney(m[1]) ?? null
     if (total && n !== undefined) return { ...none, total, nights: n }
   }
+
+  // Monthly price ("$5,668 CAD", qualifier "monthly"; label "$5,668 CAD monthly, originally …").
+  if (priceText && qualifier && /^(?:monthly|per month|month)$/i.test(qualifier.trim())) {
+    return { ...none, monthly: parseMoney(priceText) ?? null }
+  }
+  const mm = label ? MONTHLY_RE.exec(label) : null
+  if (mm && !/\bnights?\b/i.test(label ?? ''))
+    return { ...none, monthly: parseMoney(mm[1]) ?? null }
 
   // Stay total with no night count on the line ("$926 CAD", qualifier "total").
   if (priceText && qualifier && /^total$/i.test(qualifier.trim())) {
@@ -212,11 +226,21 @@ export function summarizeSearchResult(
   const parsed: ParsedPriceLine = primary
     ? parsePriceLine(primary)
     : { total: null, nights: null, nightlyBase: null }
-  const { total } = parsed
+  let { total } = parsed
   let nights = parsed.nights
   const breakdown = breakdownLine(sdp)
   if (parsed.totalNeedsNights && nights === null) {
     nights = nightsFromBreakdown(breakdown) ?? opts.nightsHint ?? null
+  }
+  const monthly = parsed.monthly ?? null
+  // Monthly stays: Airbnb shows an all-in price per month. Scale it by the stay
+  // length from the URL for the total; per night is monthly ÷ (365/12).
+  if (monthly && !total && opts.nightsHint !== undefined) {
+    const months = monthsFromNights(opts.nightsHint)
+    if (months !== undefined) {
+      total = monthlyTotal(monthly, months)
+      nights = opts.nightsHint
+    }
   }
   // Pre-fee nightly rate: breakdown line wins; a nightly-only price line is the fallback.
   const nightlyBase: Money | null = nightlyRateFromBreakdown(breakdown) ?? parsed.nightlyBase
@@ -230,9 +254,22 @@ export function summarizeSearchResult(
     guestFavorite: badges.some((b) => b.includes('guest favorite')),
     total,
     nights,
-    perNight: total && nights ? (perNight(total.amount, nights) ?? null) : null,
+    perNight:
+      total && nights
+        ? (perNight(total.amount, nights) ?? null)
+        : monthly
+          ? Math.round(monthly.amount / NIGHTS_PER_MONTH)
+          : null,
     nightlyBase,
+    monthly,
   }
+}
+
+export function monthlyTotal(monthly: Money, months: number): Money {
+  const amount = Math.round(monthly.amount * months)
+  return monthly.suffix
+    ? { amount, currency: monthly.currency, suffix: monthly.suffix }
+    : { amount, currency: monthly.currency }
 }
 
 /** Every listing summary found anywhere in a parsed embedded-state tree. De-duplicated by id. */

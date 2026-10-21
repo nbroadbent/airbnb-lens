@@ -20,9 +20,10 @@ are looking at.
    4.9–5.0 "above avg", grey 4.8 "average", amber 4.6–4.7 "below avg", red ≤4.5
    "well below avg", blue "new" when unrated. Dimmed when there are fewer than 10
    reviews.
-2. **True nightly price**: when Airbnb shows a stay total ("RM 2,340 for 4 nights"),
-   Lens shows "RM 585/night all-in" under it. If only a base nightly rate is shown,
-   Lens shows nothing rather than guess.
+2. **True nightly price**: when Airbnb shows a stay total ("RM 2,340 for 4 nights",
+   "$926 CAD total") Lens shows "RM 585/night all-in" under it. Monthly stays
+   ("$5,668 CAD monthly") are divided by 30.4 nights. If only a base nightly rate is
+   shown, Lens shows nothing rather than guess.
 3. **Client-side filters** in a floating panel (bottom-right, collapsible,
    draggable) and in the toolbar popup: minimum rating, minimum review count, max
    price (per night all-in, or the stay total, via a selector), hide unrated,
