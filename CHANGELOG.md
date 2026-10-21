@@ -2,6 +2,17 @@
 
 All notable changes to Airbnb Lens. Dates are ISO (YYYY-MM-DD).
 
+## [0.4.0] — 2026-10-22
+
+### Changed
+
+- **Visual refresh** to match Airbnb's own look: rating badges are soft tinted chips
+  with dark text (green / grey / amber / red / blue) instead of saturated pills; the
+  per-night line reads as "**$222 CAD** /night all-in"; the panel is a white card with
+  a hairline header, rose mark, count pill, chevron collapse, custom slider, pill-style
+  basis dropdown, and a "Clear filters" link. The popup uses the same language, with
+  tinted status cards and dark-mode tokens.
+
 ## [0.3.4] — 2026-10-21
 
 ### Fixed

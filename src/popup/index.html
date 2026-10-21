@@ -7,7 +7,8 @@
     <link rel="stylesheet" href="./popup.css" />
   </head>
   <body>
-    <header class="row header">
+    <header class="header">
+      <span class="mark" aria-hidden="true"></span>
       <h1>Airbnb Lens</h1>
       <label class="switch" title="Turn Lens on or off everywhere">
         <input type="checkbox" id="enabled" />
@@ -24,7 +25,9 @@
 
     <section class="filters" id="filters">
       <h2>Search filters</h2>
-      <p class="note">Applied live to search results. Also available in the on-page panel.</p>
+      <p class="note">
+        Applied live to open search tabs. The on-page panel edits the same filters.
+      </p>
 
       <label class="field">
         <span class="field-label">
@@ -87,7 +90,7 @@
         <span>Show status pill on listing pages</span>
       </label>
 
-      <button id="reset" class="btn btn-ghost">Reset filters</button>
+      <button id="reset" class="btn-link">Clear filters</button>
     </section>
 
     <section class="diag">
