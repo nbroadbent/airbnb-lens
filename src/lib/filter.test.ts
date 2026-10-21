@@ -13,6 +13,7 @@ const base: ListingSummary = {
   total: { amount: 2000, currency: '$' },
   nights: 4,
   perNight: 500,
+  nightlyBase: null,
 }
 
 describe('filters', () => {
@@ -31,6 +32,22 @@ describe('filters', () => {
       filterReasons({ ...base, superhost: true }, { ...DEFAULT_FILTERS, superhostOnly: true }),
     ).toEqual([])
   })
+  it('uses the listed nightly rate when there is no all-in price', () => {
+    const listed = {
+      ...base,
+      total: null,
+      nights: null,
+      perNight: null,
+      nightlyBase: { amount: 150, currency: '$' },
+    }
+    expect(filterReasons(listed, { ...DEFAULT_FILTERS, maxNightly: 149 })).toEqual(['price'])
+    expect(filterReasons(listed, { ...DEFAULT_FILTERS, maxNightly: 150 })).toEqual([])
+    // all-in wins over listed when both exist
+    expect(
+      filterReasons({ ...listed, perNight: 200 }, { ...DEFAULT_FILTERS, maxNightly: 180 }),
+    ).toEqual(['price'])
+  })
+
   it('never hides on unknown data except via hideUnrated', () => {
     const unknown = {
       ...base,

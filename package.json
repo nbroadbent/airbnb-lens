@@ -1,7 +1,7 @@
 {
   "name": "airbnb-lens",
   "private": true,
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Chrome extension (MV3) that augments Airbnb search results and listing pages with information Airbnb withholds. Runs entirely in the browser.",
   "type": "module",
   "scripts": {

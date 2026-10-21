@@ -2,8 +2,10 @@
 
 export interface Money {
   amount: number
-  /** Whatever non-numeric text surrounded the number, trimmed: "$", "RM", "€", "CA$"... */
+  /** Marker printed next to the number: "$", "RM", "€", "CA$"... */
   currency: string
+  /** Trailing code when both a symbol and a code are shown ("$926 CAD" → "CAD"). */
+  suffix?: string
 }
 
 const NBSP = /[\u00a0\u202f\s]+/g
@@ -24,11 +26,17 @@ export function parseMoney(text: string | null | undefined): Money | undefined {
   if (!m) return undefined
   const numeric = m[2] ?? ''
   const sign = m[1] === '-' ? -1 : 1
-  const currency = cleaned
+  const prefix = cleaned
     .slice(0, m.index)
-    .concat(' ', cleaned.slice(m.index + m[0].length))
+    .replace(/[\d\s-]/g, '')
+    .trim()
+  const after = cleaned
+    .slice(m.index + m[0].length)
     .replace(/[\d\s]/g, '')
     .trim()
+  // "$926 CAD" → currency "$", suffix "CAD". "1 234 €" → currency "€". "RM 2,340" → "RM".
+  const currency = prefix || after
+  const suffix = prefix && after ? after : ''
 
   const seps = numeric.match(/[.,' ]/g) ?? []
   let amount: number
@@ -51,7 +59,7 @@ export function parseMoney(text: string | null | undefined): Money | undefined {
     }
   }
   if (!Number.isFinite(amount)) return undefined
-  return { amount: sign * amount, currency }
+  return suffix ? { amount: sign * amount, currency, suffix } : { amount: sign * amount, currency }
 }
 
 /** "for 4 nights" → 4; "for 1 night" → 1; anything else → undefined. */
@@ -87,10 +95,19 @@ export function perNight(total: number, nights: number | undefined): number | un
   return Math.round(total / nights)
 }
 
-/** Format an amount with its currency marker, no decimals: "$585", "CA$585", "RM 585". */
-export function formatMoney(amount: number, currency: string): string {
+/** Format an amount with its currency marker, no decimals: "$585", "CA$585", "RM 585", "$232 CAD". */
+export function formatMoney(amount: number, currency: string, suffix?: string): string {
   const n = Math.round(amount).toLocaleString('en-US')
-  if (!currency) return n
+  const tail = suffix ? ` ${suffix}` : ''
+  if (!currency) return `${n}${tail}`
   // Markers ending in a symbol hug the number ("$585", "CA$585"); letter codes get a space ("RM 585").
-  return /[^\w\s]$/.test(currency) ? `${currency}${n}` : `${currency} ${n}`
+  return (/[^\w\s]$/.test(currency) ? `${currency}${n}` : `${currency} ${n}`) + tail
+}
+
+/** "4 nights x $201.51 CAD" → 4. Used on price-breakdown lines. */
+export function nightsFromBreakdown(text: string | null | undefined): number | undefined {
+  if (!text) return undefined
+  const m = /^(\d+)\s*nights?\s*[x×]/i.exec(text.trim())
+  const n = m ? Number(m[1]) : NaN
+  return n > 0 ? n : undefined
 }

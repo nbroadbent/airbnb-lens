@@ -2,6 +2,20 @@
 
 All notable changes to Airbnb Lens. Dates are ISO (YYYY-MM-DD).
 
+## [0.2.4] — 2026-10-21
+
+### Fixed
+
+- **Price filter did nothing on Canadian (regulated-total) pages.** There the price
+  line is "$926 CAD total" with no night count, so no per-night price was computed and
+  nothing could be filtered. Nights now come from the price breakdown
+  ("4 nights x $201.51 CAD") or, failing that, the URL's check-in/check-out dates.
+  Fixture `fixtures/search-cad-regulated.html` added with JSON and DOM tests.
+- Currency codes after the amount ("$926 CAD") are kept and shown ("$232 CAD/night all-in").
+- When Airbnb shows only a nightly rate ("$150 night"), Lens now hides cards whose
+  listed rate already exceeds the cap (fees can only add to it) and says how many
+  cards were judged on the listed rate.
+
 ## [0.2.3] — 2026-10-21
 
 ### Fixed

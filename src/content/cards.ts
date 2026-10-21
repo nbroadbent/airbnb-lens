@@ -73,8 +73,35 @@ export function findPriceForNights(card: Element): { text: string; el: HTMLEleme
   return null
 }
 
-/** Build a summary from the card's DOM alone. Null if we can't even find an id. */
-export function readCardFromDom(card: HTMLElement): ListingSummary | null {
+/** Leaf span like "$150 night" / "$150 per night" in the price row (no stay total shown). */
+export function findNightlyRate(card: Element): { text: string; el: HTMLElement } | null {
+  const row = q<HTMLElement>('priceRow', card)
+  if (!row) return null
+  for (const span of Array.from(row.querySelectorAll<HTMLElement>('span'))) {
+    if (span.children.length !== 0) continue
+    const t = leafText(span)
+    if (patterns.priceNightly.test(t) && /\d/.test(t)) return { text: t, el: span }
+  }
+  return null
+}
+
+/** Leaf span like "$926 CAD total" in the price row (regulated-total style; no night count). */
+export function findPriceTotalOnly(card: Element): { text: string; el: HTMLElement } | null {
+  const row = q<HTMLElement>('priceRow', card)
+  if (!row) return null
+  for (const span of Array.from(row.querySelectorAll<HTMLElement>('span'))) {
+    if (span.children.length !== 0) continue
+    const t = leafText(span)
+    if (patterns.priceTotalOnly.test(t) && /\d/.test(t)) return { text: t, el: span }
+  }
+  return null
+}
+
+/**
+ * Build a summary from the card's DOM alone. Null if we can't even find an id.
+ * `nightsHint` (from the URL dates) is used when the card shows a total without a count.
+ */
+export function readCardFromDom(card: HTMLElement, nightsHint?: number): ListingSummary | null {
   const id = cardId(card)
   if (!id) return null
 
@@ -94,6 +121,23 @@ export function readCardFromDom(card: HTMLElement): ListingSummary | null {
     }
   }
 
+  if (!total && nightsHint !== undefined) {
+    const t = findPriceTotalOnly(card)
+    const m = t ? patterns.priceTotalOnly.exec(t.text) : null
+    const money = parseMoney(m?.[1])
+    if (money) {
+      total = money
+      nights = nightsHint
+    }
+  }
+
+  let nightlyBase: ListingSummary['nightlyBase'] = null
+  if (!total) {
+    const nightly = findNightlyRate(card)
+    const m = nightly ? patterns.priceNightly.exec(nightly.text) : null
+    nightlyBase = m ? (parseMoney(m[1]) ?? null) : null
+  }
+
   return {
     id,
     title: leafText(q('cardTitle', card) ?? card).slice(0, 120) || null,
@@ -104,5 +148,6 @@ export function readCardFromDom(card: HTMLElement): ListingSummary | null {
     total,
     nights,
     perNight: total && nights ? (perNight(total.amount, nights) ?? null) : null,
+    nightlyBase,
   }
 }

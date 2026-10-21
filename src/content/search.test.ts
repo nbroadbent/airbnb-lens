@@ -58,6 +58,59 @@ describe('card DOM reading (fixtures/search.html)', () => {
   })
 })
 
+describe('CAD regulated-total page (fixtures/search-cad-regulated.html)', () => {
+  it('prices every card from JSON and from the DOM alone, and filters on it', () => {
+    const doc = loadFixture('search-cad-regulated.html')
+    const cards = findCards(doc)
+    expect(cards.length).toBeGreaterThanOrEqual(18)
+    for (const card of cards) {
+      const dom = readCardFromDom(card, 4)
+      expect(dom?.perNight, `dom price for ${dom?.id}`).not.toBeNull()
+      expect(dom?.total?.suffix).toBe('CAD')
+    }
+    const r = augmentSearchPage({ ...DEFAULT_FILTERS, maxNightly: 230 }, doc)
+    expect(r.fromJson).toBe(cards.length)
+    expect(r.noPrice).toBe(0)
+    expect(r.hidden).toBeGreaterThan(0)
+    expect(r.shown).toBeGreaterThan(0)
+    expect(cards[0]?.querySelector('[data-lens-price]')?.textContent).toBe('$232 CAD/night all-in')
+  })
+})
+
+describe('DOM fallback for nightly-only cards', () => {
+  it('reads "$150 night" as a listed rate and filters on it', () => {
+    document.body.innerHTML = `
+      <div itemprop="itemListElement"><div data-testid="card-container">
+        <a href="/rooms/42?x=1">x</a>
+        <div data-testid="listing-card-title">Cabin</div>
+        <div data-testid="price-availability-row"><span><span>$150</span><span> night</span></span><span>$150 per night</span></div>
+      </div></div>
+      <div itemprop="itemListElement"><div data-testid="card-container">
+        <a href="/rooms/43?x=1">x</a>
+        <div data-testid="listing-card-title">Loft</div>
+        <div data-testid="price-availability-row"><span>$95 night</span></div>
+      </div></div>`
+    const cards = findCards(document)
+    expect(readCardFromDom(cards[0] as HTMLElement)).toMatchObject({
+      id: '42',
+      perNight: null,
+      nightlyBase: { amount: 150, currency: '$' },
+    })
+    const r = augmentSearchPage({ ...DEFAULT_FILTERS, maxNightly: 100 }, document)
+    expect(r).toMatchObject({
+      total: 2,
+      hidden: 1,
+      shown: 1,
+      listedOnly: 2,
+      noPrice: 0,
+      fromDom: 2,
+    })
+    expect(document.querySelectorAll('[data-lens-price]')).toHaveLength(0) // no all-in label without a total
+    teardownSearchPage(document)
+    document.body.innerHTML = ''
+  })
+})
+
 describe('augmentSearchPage', () => {
   let doc: Document
   beforeEach(() => {

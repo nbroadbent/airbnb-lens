@@ -68,6 +68,8 @@ Objects with `__typename: "StaySearchResult"` anywhere under `niobeClientData`:
   - `QualifiedDisplayPriceLine`: `price: "RM 2,340"`, `qualifier: "for 4 nights"`
   - `DiscountedDisplayPriceLine`: `discountedPrice`, `originalPrice`, `qualifier`
   - `OrderedDisplayPriceLine`: `orderedComponents: [{ discountedPrice | price }, { qualifier }]` (fixture: `search-ssr-nodates-usd.html`)
+  - `REGULATED_TOTAL` style (Canada): `price: "$926 CAD"`, `qualifier: "total"`; nights come from `explanationData.priceDetails[].items[].description` ("4 nights x $201.51 CAD") or the URL dates (fixture: `search-cad-regulated.html`)
+  - nightly-only: `qualifier: "night"` / label `"$150 per night"` → treated as a listed base rate (fees unknown); only used to hide cards whose base rate already exceeds the cap
 - `structuredDisplayPrice.displayPriceStyle`: `"TOTAL_ONLY"` (page banner: "Prices include all fees")
 
 ## Page-type detection (URL patterns, not selectors)

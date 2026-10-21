@@ -1,4 +1,4 @@
-import type { ListingSummary } from './listing'
+import { filterPrice, type ListingSummary } from './listing'
 import type { Filters } from './settings'
 
 export type FilterReason = 'rating' | 'reviews' | 'price' | 'unrated' | 'superhost'
@@ -15,8 +15,8 @@ export function filterReasons(l: ListingSummary, f: Filters): FilterReason[] {
     reasons.push('rating')
   if (f.minReviews !== null && l.reviews !== null && l.reviews < f.minReviews)
     reasons.push('reviews')
-  if (f.maxNightly !== null && l.perNight !== null && l.perNight > f.maxNightly)
-    reasons.push('price')
+  const price = filterPrice(l)
+  if (f.maxNightly !== null && price !== null && price.amount > f.maxNightly) reasons.push('price')
   if (f.superhostOnly && !l.superhost) reasons.push('superhost')
   return reasons
 }
