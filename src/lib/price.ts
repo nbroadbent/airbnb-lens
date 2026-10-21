@@ -104,6 +104,13 @@ export function formatMoney(amount: number, currency: string, suffix?: string): 
   return (/[^\w\s]$/.test(currency) ? `${currency}${n}` : `${currency} ${n}`) + tail
 }
 
+/** "4 nights x $201.51 CAD" → { amount: 201.51, currency: "$", suffix: "CAD" }: the nightly rate before fees. */
+export function nightlyRateFromBreakdown(text: string | null | undefined): Money | undefined {
+  if (!text) return undefined
+  const m = /^\d+\s*nights?\s*[x×]\s*(.+)$/i.exec(text.trim())
+  return m ? parseMoney(m[1]) : undefined
+}
+
 /** "4 nights x $201.51 CAD" → 4. Used on price-breakdown lines. */
 export function nightsFromBreakdown(text: string | null | undefined): number | undefined {
   if (!text) return undefined

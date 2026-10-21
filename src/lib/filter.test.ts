@@ -48,6 +48,24 @@ describe('filters', () => {
     ).toEqual(['price'])
   })
 
+  it('compares against the pre-fee nightly rate when basis is nightly', () => {
+    const l = { ...base, perNight: 500, nightlyBase: { amount: 400, currency: '$' } }
+    expect(filterReasons(l, { ...DEFAULT_FILTERS, maxNightly: 450, priceBasis: 'all-in' })).toEqual(
+      ['price'],
+    )
+    expect(
+      filterReasons(l, { ...DEFAULT_FILTERS, maxNightly: 450, priceBasis: 'nightly' }),
+    ).toEqual([])
+    expect(
+      filterReasons(l, { ...DEFAULT_FILTERS, maxNightly: 399, priceBasis: 'nightly' }),
+    ).toEqual(['price'])
+    // nightly basis never infers from all-in
+    const noBase = { ...base, perNight: 500, nightlyBase: null }
+    expect(
+      filterReasons(noBase, { ...DEFAULT_FILTERS, maxNightly: 100, priceBasis: 'nightly' }),
+    ).toEqual([])
+  })
+
   it('never hides on unknown data except via hideUnrated', () => {
     const unknown = {
       ...base,

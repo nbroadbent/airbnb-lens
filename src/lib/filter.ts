@@ -15,7 +15,7 @@ export function filterReasons(l: ListingSummary, f: Filters): FilterReason[] {
     reasons.push('rating')
   if (f.minReviews !== null && l.reviews !== null && l.reviews < f.minReviews)
     reasons.push('reviews')
-  const price = filterPrice(l)
+  const price = filterPrice(l, f.priceBasis)
   if (f.maxNightly !== null && price !== null && price.amount > f.maxNightly) reasons.push('price')
   if (f.superhostOnly && !l.superhost) reasons.push('superhost')
   return reasons

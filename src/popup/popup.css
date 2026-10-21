@@ -152,6 +152,15 @@ h2 {
   justify-content: space-between;
   margin-bottom: 2px;
 }
+.field-label .basis {
+  padding: 1px 4px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  font-size: 12px;
+}
 .field-label .rating-box {
   width: 64px;
   padding: 2px 6px;
