@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Airbnb Lens</title>
+    <link rel="stylesheet" href="./popup.css" />
+  </head>
+  <body>
+    <header class="row header">
+      <h1>Airbnb Lens</h1>
+      <label class="switch" title="Turn Lens on or off everywhere">
+        <input type="checkbox" id="enabled" />
+        <span class="track"></span>
+        <span class="switch-label" id="enabled-label">On</span>
+      </label>
+    </header>
+
+    <section class="status" id="status" aria-live="polite">
+      <span class="dot" id="status-dot"></span>
+      <span id="status-text">Checking this tab…</span>
+    </section>
+    <button id="grant" class="btn hidden">Allow access to Airbnb</button>
+
+    <section class="filters" id="filters">
+      <h2>Search filters</h2>
+      <p class="note">Applied live to search results. Also available in the on-page panel.</p>
+
+      <label class="field">
+        <span class="field-label">
+          Min rating
+          <input
+            type="number"
+            id="minRating-out"
+            class="rating-box"
+            min="4"
+            max="5"
+            step="0.01"
+            placeholder="off"
+            inputmode="decimal"
+            aria-label="Minimum rating"
+          />
+        </span>
+        <input type="range" id="minRating" min="3.99" max="5" step="0.01" />
+      </label>
+
+      <label class="field">
+        <span class="field-label">Min reviews</span>
+        <input type="number" id="minReviews" min="0" step="1" placeholder="off" />
+      </label>
+
+      <label class="field">
+        <span class="field-label">Max all-in price / night</span>
+        <input type="number" id="maxNightly" min="0" step="1" placeholder="off" />
+      </label>
+
+      <label class="check">
+        <input type="checkbox" id="hideUnrated" />
+        <span>Hide listings without ratings</span>
+      </label>
+
+      <label class="check">
+        <input type="checkbox" id="superhostOnly" />
+        <span>Hide listings whose host isn't a Superhost</span>
+      </label>
+
+      <label class="check">
+        <input type="checkbox" id="showStatusPill" />
+        <span>Show status pill on listing pages</span>
+      </label>
+
+      <button id="reset" class="btn btn-ghost">Reset filters</button>
+    </section>
+
+    <footer><span id="version"></span> · Unaffiliated with Airbnb · No network requests</footer>
+
+    <script type="module" src="./popup.ts"></script>
+  </body>
+</html>

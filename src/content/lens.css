@@ -1,0 +1,215 @@
+/* Airbnb Lens injected styles. Everything is prefixed `lens-` and scoped to
+   [data-lens] so nothing leaks into Airbnb's own styling and vice versa. */
+
+:root {
+  --lens-green: #1f9d55;
+  --lens-grey: #6b6b6b;
+  --lens-amber: #c98a00;
+  --lens-red: #c62828;
+  --lens-blue: #2563eb;
+}
+
+/* ---------- status pill (listing pages / fallback) ---------- */
+[data-lens].lens-pill {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 2147483000;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #222;
+  color: #fff;
+  font:
+    600 13px/1 system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+  user-select: none;
+}
+[data-lens].lens-pill .lens-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #3ddc84;
+}
+[data-lens].lens-pill .lens-muted {
+  opacity: 0.7;
+  font-weight: 400;
+}
+
+/* ---------- feature 1: calibrated rating badge ---------- */
+[data-lens-hide-original] {
+  display: none !important;
+}
+[data-lens].lens-badge {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font:
+    600 12px/1.5 system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  color: #fff;
+  background: var(--lens-grey);
+  white-space: nowrap;
+  vertical-align: middle;
+}
+[data-lens].lens-badge[data-tone='green'] {
+  background: var(--lens-green);
+}
+[data-lens].lens-badge[data-tone='grey'] {
+  background: var(--lens-grey);
+}
+[data-lens].lens-badge[data-tone='amber'] {
+  background: var(--lens-amber);
+}
+[data-lens].lens-badge[data-tone='red'] {
+  background: var(--lens-red);
+}
+[data-lens].lens-badge[data-tone='blue'] {
+  background: var(--lens-blue);
+}
+[data-lens].lens-badge.lens-dim {
+  opacity: 0.55;
+}
+
+/* ---------- feature 2: true nightly price ---------- */
+[data-lens].lens-pernight {
+  margin-top: 2px;
+  font:
+    600 13px/1.4 system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  color: #1f6f3f;
+}
+
+/* ---------- feature 3: floating filter panel ---------- */
+[data-lens].lens-panel {
+  position: fixed;
+  z-index: 2147483000;
+  width: 260px;
+  border-radius: 12px;
+  background: #fff;
+  color: #222;
+  box-shadow:
+    0 6px 24px rgba(0, 0, 0, 0.22),
+    0 0 0 1px rgba(0, 0, 0, 0.06);
+  font:
+    13px/1.4 system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  overflow: hidden;
+}
+[data-lens].lens-panel.lens-dragging {
+  user-select: none;
+  opacity: 0.92;
+}
+.lens-panel .lens-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #222;
+  color: #fff;
+  cursor: grab;
+  touch-action: none;
+}
+.lens-panel.lens-dragging .lens-panel-header {
+  cursor: grabbing;
+}
+.lens-panel .lens-panel-title {
+  font-weight: 700;
+}
+.lens-panel .lens-panel-count {
+  margin-left: auto;
+  opacity: 0.85;
+  font-variant-numeric: tabular-nums;
+}
+.lens-panel .lens-panel-toggle {
+  all: unset;
+  cursor: pointer;
+  padding: 0 4px;
+  font-size: 14px;
+  line-height: 1;
+}
+.lens-panel .lens-panel-body {
+  padding: 10px 12px 12px;
+}
+.lens-panel.lens-collapsed .lens-panel-body {
+  display: none;
+}
+.lens-panel .lens-field {
+  display: block;
+  margin: 6px 0 8px;
+}
+.lens-panel .lens-field-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+.lens-panel input.lens-out {
+  width: 64px;
+  padding: 2px 6px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #fff;
+  color: #222;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.lens-panel input[type='range'] {
+  width: 100%;
+  margin: 0;
+  accent-color: #ff385c;
+}
+.lens-panel input[type='number'] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 5px 7px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #fff;
+  color: #222;
+  font: inherit;
+}
+.lens-panel .lens-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+  cursor: pointer;
+}
+.lens-panel .lens-check input {
+  margin: 0;
+  accent-color: #ff385c;
+}
+.lens-panel .lens-btn {
+  all: unset;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: 8px;
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  text-align: center;
+  cursor: pointer;
+  font: inherit;
+}
+.lens-panel .lens-btn:hover {
+  background: #f5f5f5;
+}

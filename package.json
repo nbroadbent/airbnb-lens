@@ -1,0 +1,40 @@
+{
+  "name": "airbnb-lens",
+  "private": true,
+  "version": "0.2.2",
+  "description": "Chrome extension (MV3) that augments Airbnb search results and listing pages with information Airbnb withholds. Runs entirely in the browser.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit -p tsconfig.json && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm run test && npm run build:all",
+    "build:firefox": "tsc --noEmit -p tsconfig.json && TARGET=firefox vite build",
+    "build:all": "npm run build && TARGET=firefox vite build"
+  },
+  "devDependencies": {
+    "@crxjs/vite-plugin": "^3.0.0",
+    "@eslint/js": "^9.39.0",
+    "@types/chrome": "^0.3.5",
+    "@types/node": "^22.0.0",
+    "eslint": "^9.39.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^16.0.0",
+    "jsdom": "^27.0.0",
+    "prettier": "^3.6.0",
+    "typescript": "^5.9.0",
+    "typescript-eslint": "^8.46.0",
+    "vite": "^8.0.0",
+    "vitest": "^4.1.12"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  }
+}
