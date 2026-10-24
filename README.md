@@ -180,6 +180,14 @@ patterns. When something breaks:
 - No network calls, no remote code, no clicking on the user's behalf.
 - Boring, resilient code over clever code.
 
+## Icon
+
+`assets/icon.svg` is the source. The PNGs in `public/icons/` (16, 32, 48, 128 px) are
+rasterised from it and referenced from the manifest for the toolbar and extension
+pages. To regenerate after editing the SVG, render it at each size with any
+rasteriser (for example `rsvg-convert -w 128 assets/icon.svg > public/icons/icon-128.png`)
+and rebuild.
+
 ## Permissions
 
 | Permission                         | Why                                               |
