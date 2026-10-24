@@ -2,6 +2,14 @@
 
 All notable changes to Airbnb Lens. Dates are ISO (YYYY-MM-DD).
 
+## [0.4.1] — 2026-10-25
+
+### Added
+
+- Extension icon: a white magnifier on a rose tile (`assets/icon.svg`, PNGs in
+  `public/icons/`), used for the toolbar action and extension pages in Chrome and
+  Firefox.
+
 ## [0.4.0] — 2026-10-22
 
 ### Changed

@@ -20,9 +20,22 @@ export default defineManifest({
   // `activeTab`: lets the popup read the current tab's URL (only while open) so it
   //   can tell you whether you're on an Airbnb page. No network, no remote code.
   permissions: ['storage', 'activeTab'],
+  // PNGs are rasterised from assets/icon.svg (see README "Icon").
+  icons: {
+    16: 'icons/icon-16.png',
+    32: 'icons/icon-32.png',
+    48: 'icons/icon-48.png',
+    128: 'icons/icon-128.png',
+  },
   action: {
     default_title: 'Airbnb Lens',
     default_popup: 'src/popup/index.html',
+    default_icon: {
+      16: 'icons/icon-16.png',
+      32: 'icons/icon-32.png',
+      48: 'icons/icon-48.png',
+      128: 'icons/icon-128.png',
+    },
   },
   content_scripts: [
     {
